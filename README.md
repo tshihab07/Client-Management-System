@@ -2,5 +2,5 @@
 
 ---
 
-Author:: Tushar Shihab
+Author:: Tushar Shihab <br>
 Machine Learning Engineer
