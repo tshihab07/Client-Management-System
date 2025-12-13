@@ -23,7 +23,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 ADMIN_USER = UserInDB(
     username="tshihab07",
-    hashed_password="$2b$12$Xe7HvYwKfR9j1Y1Z0sDQXeF5dJZ3J6a2YdZ9XwKjXeF5dJZ3J6a2Y"
+    hashed_password="$2b$12$Xe7HvYwKfR9j1Y1Z0sDQXeF5dJZ3J6a2YdZ9XwKjXeF5dJZ3J6a2YdZ9Xw"
 )
 
 ADMIN_USER = UserInDB(
