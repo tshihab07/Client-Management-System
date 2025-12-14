@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — ClientMS{% endblock %}
+
+{% block header %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-[#B8C4A9] rounded-xl p-5 shadow-sm card-hover">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-gray-600 text-sm">Total Client</p>
+                <p class="text-2xl font-bold mt-1">{{ summary.total_clients }}</p>
+            </div>
+            <svg class="w-8 h-8 text-gray-700 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.645-.12-1.273-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.645.12-1.273.356-1.857m0 0a5.002 5.002 0 019.288 0M17 10a5 5 0 11-10 0 5 5 0 0110 0z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <div class="bg-[#6FA4AF] rounded-xl p-5 shadow-sm card-hover">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-gray-600 text-sm">Total Amount</p>
+                <p class="text-2xl font-bold mt-1">৳{{ "%.2f"|format(summary.total_amount) }}</p>
+            </div>
+            <svg class="w-8 h-8 text-gray-700 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <div class="bg-[#D97D55] rounded-xl p-5 shadow-sm card-hover">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-gray-600 text-sm">Total Payment</p>
+                <p class="text-2xl font-bold mt-1">৳{{ "%.2f"|format(summary.total_paid) }}</p>
+            </div>
+            <svg class="w-8 h-8 text-white opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <div class="bg-[#F4E9D7] rounded-xl p-5 shadow-sm card-hover border border-gray-200">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-gray-600 text-sm">Total Due</p>
+                <p class="text-2xl font-bold mt-1 text-gray-800">৳{{ "%.2f"|format(summary.total_due) }}</p>
+            </div>
+            <svg class="w-8 h-8 text-gray-700 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<!-- Client Table -->
+<div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-800">Recent Clients</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client Name</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                <!-- TODO: Loop over real clients from API -->
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">John Doe</td>
+                    <td class="px-6 py-4 whitespace-nowrap">Website</td>
+                    <td class="px-6 py-4 whitespace-nowrap">Development</td>
+                    <td class="px-6 py-4 whitespace-nowrap">৳15,000.00</td>
+                    <td class="px-6 py-4 whitespace-nowrap">৳10,000.00</td>
+                    <td class="px-6 py-4 whitespace-nowrap">৳5,000.00</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                    </td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">Jane Smith</td>
+                    <td class="px-6 py-4 whitespace-nowrap">Logo Design</td>
+                    <td class="px-6 py-4 whitespace-nowrap">Design</td>
+                    <td class="px-6 py-4 whitespace-nowrap">৳5,000.00</td>
+                    <td class="px-6 py-4 whitespace-nowrap">৳5,000.00</td>
+                    <td class="px-6 py-4 whitespace-nowrap">৳0.00</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="px-6 py-3 bg-gray-50 text-sm text-gray-500">
+        Showing <span class="font-medium">1 to 2</span> of <span class="font-medium">2</span> results
+    </div>
+</div>
+{% endblock %}
