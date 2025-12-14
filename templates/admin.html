@@ -58,8 +58,14 @@
 
 <!-- Client Table -->
 <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-200">
+    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
         <h3 class="text-lg font-semibold text-gray-800">Recent Clients</h3>
+        <a href="/add" class="text-primary hover:underline flex items-center text-sm font-medium">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Add New
+        </a>
     </div>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
@@ -75,34 +81,44 @@
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-                <!-- TODO: Loop over real clients from API -->
+                {% for client in clients %}
                 <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 whitespace-nowrap">John Doe</td>
-                    <td class="px-6 py-4 whitespace-nowrap">Website</td>
-                    <td class="px-6 py-4 whitespace-nowrap">Development</td>
-                    <td class="px-6 py-4 whitespace-nowrap">৳15,000.00</td>
-                    <td class="px-6 py-4 whitespace-nowrap">৳10,000.00</td>
-                    <td class="px-6 py-4 whitespace-nowrap">৳5,000.00</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ client.client_name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ client.project }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ client.category }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">৳{{ "%.2f"|format(client.amount) }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">৳{{ "%.2f"|format(client.paid) }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">৳{{ "%.2f"|format(client.due) }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                        {% if client.payment_status == "Completed" %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
+                        {% else %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                        {% endif %}
                     </td>
                 </tr>
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 whitespace-nowrap">Jane Smith</td>
-                    <td class="px-6 py-4 whitespace-nowrap">Logo Design</td>
-                    <td class="px-6 py-4 whitespace-nowrap">Design</td>
-                    <td class="px-6 py-4 whitespace-nowrap">৳5,000.00</td>
-                    <td class="px-6 py-4 whitespace-nowrap">৳5,000.00</td>
-                    <td class="px-6 py-4 whitespace-nowrap">৳0.00</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p class="mt-2 font-medium">No clients yet</p>
+                        <p class="mt-1 text-sm">Get started by adding your first client.</p>
+                        <a href="/add" class="mt-3 inline-block px-4 py-2 bg-primary text-white text-sm rounded-md hover:bg-opacity-90">
+                            ➕ Add Client
+                        </a>
                     </td>
                 </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
+    {% if clients %}
     <div class="px-6 py-3 bg-gray-50 text-sm text-gray-500">
-        Showing <span class="font-medium">1 to 2</span> of <span class="font-medium">2</span> results
+        Showing <span class="font-medium">{{ clients|length }}</span> of <span class="font-medium">{{ summary.total_clients }}</span> clients
+        <a href="/view" class="ml-2 text-primary hover:underline">View All</a>
     </div>
+    {% endif %}
 </div>
 {% endblock %}
