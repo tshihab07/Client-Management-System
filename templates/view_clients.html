@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}View Clients — ClientMS{% endblock %}
+
+{% block header %}All Clients{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <!-- Search & Filter Bar -->
+    <div class="p-4 bg-gray-50 border-b border-gray-200">
+        <form method="get" class="flex flex-col md:flex-row gap-3">
+            <div class="flex-grow">
+                <label for="search" class="block text-xs font-medium text-gray-500 mb-1">Search</label>
+                <input 
+                    type="text" 
+                    id="search" 
+                    name="search"
+                    value="{{ request.query_params.get('search', '') }}"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                    placeholder="Name or phone"
+                >
+            </div>
+            <div>
+                <label for="status" class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+                <select 
+                    id="status" 
+                    name="payment_status"
+                    class="w-full md:w-40 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                >
+                    <option value="">All</option>
+                    <option value="Pending" {% if request.query_params.get('payment_status') == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="Completed" {% if request.query_params.get('payment_status') == 'Completed' %}selected{% endif %}>Completed</option>
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button 
+                    type="submit"
+                    class="px-4 py-2 bg-primary hover:bg-opacity-90 text-white text-sm font-medium rounded-md transition"
+                >
+                    🔍 Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results Info -->
+    <div class="px-6 py-3 border-b border-gray-200 bg-gray-50 text-sm text-gray-600">
+        {% if clients %}
+            Showing <span class="font-medium">{{ clients|length }}</span> client{{ clients|length != 1 and 's' or '' }}
+            {% if request.query_params %}
+                for "{{ request.query_params.get('search', '') or 'all' }}"
+            {% endif %}
+        {% else %}
+            No clients found.
+        {% endif %}
+    </div>
+
+    <!-- Clients Table -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for client in clients %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="font-medium text-gray-900">{{ client.client_name }}</div>
+                        {% if client.phone %}
+                        <div class="text-sm text-gray-500">{{ client.phone }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ client.project }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ client.category }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.amount) }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.paid) }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.due) }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if client.payment_status == "Completed" %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
+                        {% else %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <a href="/transaction?client_id={{ client.id }}" 
+                           class="text-primary hover:underline flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Pay
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p class="mt-2 font-medium">No clients match your filter.</p>
+                        <p class="mt-1 text-sm">Try adjusting your search or filter.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Action Links -->
+<div class="mt-4 flex flex-wrap gap-3">
+    <a href="/pending" class="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md hover:bg-yellow-100">⚠️ View Pending Only</a>
+    <a href="/completed" class="px-4 py-2 bg-green-50 text-green-700 rounded-md hover:bg-green-100">✅ View Completed Only</a>
+    <a href="/add" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90">➕ Add New Client</a>
+</div>
+{% endblock %}
