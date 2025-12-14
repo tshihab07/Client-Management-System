@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ClientMS Admin{% endblock %}</title>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS (via CDN for simplicity — replace with build step in prod) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#D97D55',
+                        secondary: '#6FA4AF',
+                        accent: '#B8C4A9',
+                        background: '#F4E9D7',
+                        sidebar: '#2D3748',
+                        sidebarHover: '#4A5568'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar-item.active { background-color: #D97D55; color: white; }
+        .card-hover:hover { transform: translateY(-2px); transition: all 0.2s ease; }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-background min-h-screen flex">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-sidebar text-white h-screen fixed">
+        <div class="p-5 border-b border-gray-700">
+            <h1 class="text-xl font-bold">ClientMS</h1>
+            <p class="text-sm opacity-75">Admin Panel</p>
+        </div>
+        <nav class="mt-6">
+            <a href="/admin" class="flex items-center px-6 py-3 hover:bg-sidebarHover {% if request.url.path == '/admin' %}active{% endif %}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"></path></svg>
+                Dashboard
+            </a>
+            <a href="/add" class="flex items-center px-6 py-3 hover:bg-sidebarHover {% if request.url.path == '/add' %}active{% endif %}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                Add Client
+            </a>
+            <a href="/view" class="flex items-center px-6 py-3 hover:bg-sidebarHover {% if request.url.path == '/view' %}active{% endif %}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                View Client
+            </a>
+            <a href="/pending" class="flex items-center px-6 py-3 hover:bg-sidebarHover {% if request.url.path == '/pending' %}active{% endif %}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Pending
+            </a>
+            <a href="/completed" class="flex items-center px-6 py-3 hover:bg-sidebarHover {% if request.url.path == '/completed' %}active{% endif %}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Completed
+            </a>
+            <a href="/transaction" class="flex items-center px-6 py-3 hover:bg-sidebarHover {% if request.url.path == '/transaction' %}active{% endif %}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
+                Transaction
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-64 p-6 w-full">
+        <header class="mb-6">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-800">{% block header %}{% endblock %}</h2>
+                <form method="post" action="/logout" class="inline">
+                    <button type="submit" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 transition">
+                        Logout
+                    </button>
+                </form>
+            </div>
+        </header>
+
+        {% if error %}
+            <div class="mb-4 p-3 bg-red-100 text-red-700 rounded-md">{{ error }}</div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
