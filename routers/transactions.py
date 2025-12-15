@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from datetime import datetime
+from bson import ObjectId
 from database import get_collection
 from models import TransactionCreate
 
@@ -8,48 +9,55 @@ router = APIRouter()
 def get_client_collection():
     return get_collection("ClientMS")
 
-
 @router.post("/transactions", status_code=status.HTTP_200_OK)
-async def record_transaction(
-    transaction: TransactionCreate,
-    collection = Depends(get_client_collection)
-):
+async def record_transaction(transaction: TransactionCreate, collection = Depends(get_client_collection)):
+    try:
+        client_id = ObjectId(transaction.client_id)
+    
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid client ID format")
+    
     # Find client
-    client = collection.find_one({"_id": transaction.client_id})
+    client = collection.find_one({"_id": client_id})
     if not client:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Client not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client not found")
     
-    current_paid = client["paid"]
-    current_amount = client["amount"]
-    new_paid = current_paid + transaction.amount_paid
+    current_paid = float(client["paid"])
+    current_amount = float(client["amount"])
+    amount_to_add = float(transaction.amount_paid)
     
-    # Prevent overpayment
-    if new_paid > current_amount + 0.01:  # tolerance for float
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Overpayment: Total cannot exceed {current_amount}"
-        )
+    # Prevent non-positive payments
+    if amount_to_add <= 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Payment amount must be greater than 0")
     
-    # Compute new due & status
-    new_due = current_amount - new_paid
-    new_status = "Completed" if new_due <= 0.01 else "Pending"
+    # Compute new values (with rounding to 2 decimals)
+    new_paid = round(current_paid + amount_to_add, 2)
+    new_due = round(current_amount - new_paid, 2)
     
-    # Update atomically
+    # Allow minor floating-point tolerance (e.g., 0.001 → 0.00)
+    if new_due < 0 and abs(new_due) < 0.01:
+        new_due = 0.0
+    
+    # Enforce: due ≥ 0
+    if new_due < 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Overpayment: Total paid ({new_paid}) exceeds amount ({current_amount})")
+    
+    # Determine status
+    new_status = "Completed" if new_due == 0.0 else "Pending"
+    
+    # Update DB
     result = collection.update_one(
-        {"_id": transaction.client_id},
+        {"_id": client_id},
         {
             "$set": {
-                "paid": round(new_paid, 2),
-                "due": round(new_due, 2),
+                "paid": new_paid,
+                "due": new_due,
                 "payment_status": new_status,
                 "updated_at": datetime.utcnow()
             },
             "$push": {
                 "payment_history": {
-                    "amount": transaction.amount_paid,
+                    "amount": amount_to_add,
                     "timestamp": datetime.utcnow(),
                     "notes": transaction.notes or ""
                 }
@@ -58,15 +66,12 @@ async def record_transaction(
     )
     
     if result.modified_count == 0:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update client"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update client")
     
     return {
         "message": "Payment updated successfully",
-        "client_id": transaction.client_id,
-        "new_paid": round(new_paid, 2),
-        "new_due": round(new_due, 2),
+        "client_id": str(client_id),
+        "new_paid": new_paid,
+        "new_due": new_due,
         "status": new_status
     }
