@@ -1,62 +1,74 @@
 import os
-
 from fastapi import FastAPI, Request, Depends, HTTPException, status, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
+from typing import Optional
 
-from database import connect_to_mongo, close_mongo_connection, get_db, get_collection as get_client_collection
+from database import connect_to_mongo, close_mongo_connection, get_collection
+from models import ClientInDB
 from security import get_current_user_from_cookie
 from routers import auth, clients, transactions
-from routers.clients import get_summary_stats
-from models import ClientInDB
 
-# Lifespan context manager for startup/shutdown events
+# Lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     await connect_to_mongo()
     yield
-    # Shutdown
     await close_mongo_connection()
 
 # Initialize app
 app = FastAPI(
     title="ClientMS Admin Panel",
-    description="Secure client management dashboard for VendorVerse",
+    description="Secure client management dashboard",
     version="1.0.0",
     lifespan=lifespan
 )
 
-# Mount static files (CSS)
+# Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Setup templates
 templates = Jinja2Templates(directory="templates")
 
-# Include routers
+# Include API routers
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(clients.router, prefix="/api", tags=["clients"])
 app.include_router(transactions.router, prefix="/api", tags=["transactions"])
 
-# Root redirect
+# === DEPENDENCIES (FIXED: No query params!) ===
+def get_clientms_collection():
+    """Hardcoded collection dependency — no query params needed."""
+    return get_collection("ClientMS")
+
+# === ROUTES ===
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
     return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
 
-# Login page
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
-# Admin dashboard — protected route
+@app.post("/logout")
+async def logout():
+    response = RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+    response.delete_cookie(key="access_token", path="/", httponly=True, samesite="lax")
+    return response
+
+# Admin Dashboard — REAL DATA
 @app.get("/admin", response_class=HTMLResponse)
-async def admin_dashboard( request: Request, user: dict = Depends(get_current_user_from_cookie), collection = Depends(get_client_collection)):
-    # ✅ Fetch real summary stats from MongoDB
-    summary = await get_summary_stats(collection=collection)
+async def admin_dashboard(
+    request: Request,
+    user: dict = Depends(get_current_user_from_cookie),
+    collection = Depends(get_clientms_collection)
+):
+    # Get summary stats
+    summary = await clients.get_summary_stats(collection=collection)
     
-    # Optional: Fetch recent clients for table (e.g., top 10)
+    # Get recent clients (top 10)
     cursor = collection.find().sort("created_at", -1).limit(10)
     recent_clients = []
     for doc in cursor:
@@ -69,117 +81,103 @@ async def admin_dashboard( request: Request, user: dict = Depends(get_current_us
             "request": request,
             "user": user,
             "summary": summary,
-            "clients": recent_clients  # ← pass to template for table
+            "clients": recent_clients
         }
     )
 
-
-# Logout — clears cookie and redirects
-@app.post("/logout")
-async def logout():
-    response = RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
-    response.delete_cookie(key="access_token", path="/", httponly=True, samesite="lax")
-    return response
-
-
-# === FRONTEND ROUTES (HTML PAGES) ===
-
+# Frontend Pages
 @app.get("/add", response_class=HTMLResponse)
 async def add_client_page(
     request: Request,
     user: dict = Depends(get_current_user_from_cookie)
 ):
-    
     return templates.TemplateResponse("add_client.html", {"request": request, "user": user})
-
 
 @app.get("/view", response_class=HTMLResponse)
 async def view_clients_page(
     request: Request,
-    search: str = Query(None),
-    payment_status: str = Query(None),
+    search: Optional[str] = Query(None),
+    payment_status: Optional[str] = Query(None),
     user: dict = Depends(get_current_user_from_cookie),
-    collection = Depends(get_client_collection)
+    collection = Depends(get_clientms_collection)
 ):
-    # Reuse the same logic as /api/clients
     query = {}
     if search:
         query["$or"] = [
             {"client_name": {"$regex": search, "$options": "i"}},
             {"phone": {"$regex": search, "$options": "i"}}
         ]
-    
     if payment_status:
         query["payment_status"] = payment_status
     
     cursor = collection.find(query).sort("created_at", -1)
-    clients = []
-    
+    clients_list = []
     for doc in cursor:
         doc["_id"] = str(doc["_id"])
-        clients.append(ClientInDB(**doc))
+        clients_list.append(ClientInDB(**doc))
     
     return templates.TemplateResponse(
         "view_clients.html",
-        {
-            "request": request,
-            "user": user,
-            "clients": clients
-        }
+        {"request": request, "user": user, "clients": clients_list}
     )
-
 
 @app.get("/pending", response_class=HTMLResponse)
 async def pending_clients_page(
     request: Request,
     user: dict = Depends(get_current_user_from_cookie),
-    collection = Depends(get_client_collection)
+    collection = Depends(get_clientms_collection)
 ):
     cursor = collection.find({"payment_status": "Pending"}).sort("due", -1)
-    clients = [ClientInDB(**{**doc, "_id": str(doc["_id"])}) for doc in cursor]
-    
+    clients_list = [ClientInDB(**{**doc, "_id": str(doc["_id"])}) for doc in cursor]
     return templates.TemplateResponse(
         "pending.html",
-        {"request": request, "user": user, "clients": clients}
+        {"request": request, "user": user, "clients": clients_list}
     )
-
 
 @app.get("/completed", response_class=HTMLResponse)
 async def completed_clients_page(
     request: Request,
     user: dict = Depends(get_current_user_from_cookie),
-    collection = Depends(get_client_collection)
+    collection = Depends(get_clientms_collection)
 ):
     cursor = collection.find({"payment_status": "Completed"}).sort("updated_at", -1)
-    clients = [ClientInDB(**{**doc, "_id": str(doc["_id"])}) for doc in cursor]
-    
+    clients_list = [ClientInDB(**{**doc, "_id": str(doc["_id"])}) for doc in cursor]
     return templates.TemplateResponse(
         "completed.html",
-        {"request": request, "user": user, "clients": clients}
+        {"request": request, "user": user, "clients": clients_list}
     )
-
 
 @app.get("/transaction", response_class=HTMLResponse)
 async def transaction_page(
     request: Request,
-    client_id: str = Query(...),
+    client_id: Optional[str] = Query(None),  # ← Now optional
     user: dict = Depends(get_current_user_from_cookie),
-    collection = Depends(get_client_collection)
+    collection = Depends(get_clientms_collection)
 ):
-    client = collection.find_one({"_id": client_id})
+    # Handle missing client_id
+    if not client_id:
+        return RedirectResponse(
+            url="/view?error=Select a client to record payment",
+            status_code=status.HTTP_303_SEE_OTHER
+        )
+    
+    # Fetch client
+    from bson import ObjectId
+    try:
+        client = collection.find_one({"_id": ObjectId(client_id)})
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid client ID format")
     
     if not client:
-        raise HTTPException(status_code=404, detail="Client not found")
+        return RedirectResponse(
+            url="/view?error=Client not found",
+            status_code=status.HTTP_303_SEE_OTHER
+        )
     
-    # Convert ObjectId and add ID
     client["_id"] = str(client["_id"])
     client_data = ClientInDB(**client)
     
     return templates.TemplateResponse(
         "transaction.html",
-        {
-            "request": request,
-            "user": user,
-            "client": client_data
-        }
+        {"request": request, "user": user, "client": client_data}
     )
