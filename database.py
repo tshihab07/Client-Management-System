@@ -1,71 +1,77 @@
 # database.py
 import os
+import certifi
 from dotenv import load_dotenv
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, ConfigurationError
 import logging
 
-# Load environment variables
+# Load environment
 load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Global client and db references
+# Global client & db
 client = None
 db = None
 
 def get_mongo_uri() -> str:
-    """Get MongoDB URI from environment, with validation."""
     uri = os.getenv("MONGODB_URI")
     if not uri:
-        raise ValueError("MONGODB_URI not found in environment variables.")
-    # Basic validation
-    if "mongodb+srv://" not in uri:
-        raise ValueError("Invalid MongoDB URI: must start with 'mongodb+srv://'.")
+        raise ValueError("❌ MONGODB_URI missing in .env")
+    # ✅ Ensure database name is in URI — critical!
+    if "/?" in uri and "/clientms_db?" not in uri:
+        # Insert database name before query params
+        base, query = uri.split("/?", 1)
+        if not base.endswith("/"):
+            base += "/"
+        uri = f"{base}clientms_db?{query}"
+    elif "/?" not in uri and not uri.endswith("/clientms_db"):
+        # Append database name
+        uri = uri.rstrip("/") + "/clientms_db"
     return uri
 
 async def connect_to_mongo():
-    """Establish connection to MongoDB Atlas."""
     global client, db
     try:
         uri = get_mongo_uri()
-        # Use connection pooling and retry settings
+        logger.info(f"📡 Connecting to: {uri.split('@')[0]}@***.mongodb.net/...")
+        
+        # ✅ CORRECT CONFIG FOR WINDOWS + ATLAS + PYTHON 3.10+
         client = MongoClient(
             uri,
-            maxPoolSize=10,
-            minPoolSize=1,
-            serverSelectionTimeoutMS=5000,
-            connectTimeoutMS=10000,
-            socketTimeoutMS=10000,
+            tls=True,
+            tlsCAFile=certifi.where(),  # ← USE certifi bundle (not system)
+            serverSelectionTimeoutMS=20000,  # ↑ timeout for slow networks
+            connectTimeoutMS=20000,
+            socketTimeoutMS=20000,
             retryWrites=True,
-            retryReads=True
+            retryReads=True,
+            maxPoolSize=5,  # ↓ reduce for dev
+            appname="ClientMS"
         )
-        # Test connection
-        client.admin.command('ping')
-        db = client["clientms_db"]  # Database name from your spec
-        logger.info("✅ Successfully connected to MongoDB Atlas.")
-    except (ConnectionFailure, ConfigurationError) as e:
-        logger.error(f"❌ Failed to connect to MongoDB: {e}")
-        raise
+        
+        # Test with server info (more reliable than ping)
+        server_info = client.admin.command('serverStatus', {'top': 1})
+        db = client["clientms_db"]
+        logger.info(f"✅ Connected to MongoDB Atlas! Version: {server_info.get('version', 'unknown')}")
+        
     except Exception as e:
-        logger.error(f"❌ Unexpected error during DB connection: {e}")
+        logger.error(f"❌ Fatal DB connection error: {type(e).__name__}: {e}")
         raise
 
 async def close_mongo_connection():
-    """Gracefully close MongoDB connection."""
     global client
     if client:
         client.close()
         logger.info("🔌 MongoDB connection closed.")
 
 def get_db():
-    """Dependency to get DB instance."""
     if db is None:
-        raise RuntimeError("Database not initialized. Call connect_to_mongo() first.")
+        raise RuntimeError("❌ DB not initialized. Call connect_to_mongo() first.")
     return db
 
 def get_collection(collection_name: str):
-    """Get a collection by name."""
     return get_db()[collection_name]
