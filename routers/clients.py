@@ -10,13 +10,10 @@ def get_client_collection():
     return get_collection("ClientMS")
 
 @router.post("/clients", response_model=ClientInDB, status_code=status.HTTP_201_CREATED)
-async def create_client(
-    client: ClientCreate,
-    collection = Depends(get_client_collection)
-):
+async def create_client(client: ClientCreate, collection = Depends(get_client_collection)):
     # Compute derived fields
     due = client.amount - client.paid
-    payment_status = "Completed" if due <= 0.01 else "Pending"
+    payment_status = "Completed" if due == 0 else "Pending"
     
     # Prepare DB document
     client_dict = client.dict()
