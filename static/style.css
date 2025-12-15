@@ -1,0 +1,14 @@
+.card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px -5px rgba(217, 125, 85, 0.2);
+    transition: all 0.3s ease;
+}
+
+.sidebar-item.active {
+    background-color: #D97D55 !important;
+    color: white !important;
+}
+
+.sidebar-item.active svg {
+    color: white !important;
+}
