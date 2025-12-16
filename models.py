@@ -27,6 +27,7 @@ class ClientCreate(ClientBase):
 
 class ClientInDB(ClientBase):
     id: str = Field(..., alias="_id")
+    due: float = Field(..., ge=0)
     payment_status: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
