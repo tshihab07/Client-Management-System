@@ -193,7 +193,7 @@ document.getElementById('addClientForm').addEventListener('submit', async (e) =>
         
         if (response.ok) {
             alert('✅ Client added successfully!');
-            window.location.href = '/view';
+            window.location.href = '/admin';
         } else {
             const errMsg = Array.isArray(result.detail) 
                 ? result.detail.map(d => d.msg).join('; ') 
