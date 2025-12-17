@@ -140,7 +140,6 @@ async def pending_clients_page(
         {"request": request, "user": user, "clients": clients_list}
     )
 
-
 @app.get("/completed", response_class=HTMLResponse)
 async def completed_clients_page(
     request: Request,
@@ -154,39 +153,31 @@ async def completed_clients_page(
         {"request": request, "user": user, "clients": clients_list}
     )
 
+
 @app.get("/transaction", response_class=HTMLResponse)
 async def transaction_page(
     request: Request,
-    client_id: Optional[str] = Query(None),
+    client_id: Optional[str] = Query(None),  # ← Now optional
     user: dict = Depends(get_current_user_from_cookie),
     collection = Depends(get_clientms_collection)
 ):
-    # show payment form
     if client_id:
         try:
-            doc = collection.find_one({"_id": ObjectId(client_id)})
+            client = collection.find_one({"_id": ObjectId(client_id)})
+        
         except Exception:
             raise HTTPException(status_code=400, detail="Invalid client ID")
-        if not doc:
+        
+        if not client:
             return RedirectResponse(
                 url="/pending?error=Client not found",
                 status_code=status.HTTP_303_SEE_OTHER
             )
-        doc["_id"] = str(doc["_id"])
-        client_data = ClientInDB(**doc)
-        return templates.TemplateResponse(
-            "transaction.html",
-            {"request": request, "user": user, "client": client_data}
-        )
-
-    # show hub/selector
-    cursor = collection.find({"payment_status": "Pending"}).sort("due", -1)
-    pending_clients = []
-    for doc in cursor:
-        doc["_id"] = str(doc["_id"])
-        pending_clients.append(ClientInDB(**doc))
-
+    
+    client["_id"] = str(client["_id"])
+    client_data = ClientInDB(**client)
+    
     return templates.TemplateResponse(
-        "transaction_hub.html",
-        {"request": request, "user": user, "pending_clients": pending_clients}
+        "transaction.html",
+        {"request": request, "user": user, "client": client_data}
     )
