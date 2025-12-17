@@ -5,6 +5,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from typing import Optional
+from bson import ObjectId
 
 from database import connect_to_mongo, close_mongo_connection, get_collection
 from models import ClientInDB
@@ -48,15 +49,18 @@ def get_clientms_collection():
 async def root():
     return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
 
+
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
+
 
 @app.post("/logout")
 async def logout():
     response = RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
     response.delete_cookie(key="access_token", path="/", httponly=True, samesite="lax")
     return response
+
 
 # Admin Dashboard — REAL DATA
 @app.get("/admin", response_class=HTMLResponse)
@@ -85,6 +89,7 @@ async def admin_dashboard(
         }
     )
 
+
 # Frontend Pages
 @app.get("/add", response_class=HTMLResponse)
 async def add_client_page(
@@ -92,6 +97,7 @@ async def add_client_page(
     user: dict = Depends(get_current_user_from_cookie)
 ):
     return templates.TemplateResponse("add_client.html", {"request": request, "user": user})
+
 
 @app.get("/view", response_class=HTMLResponse)
 async def view_clients_page(
@@ -134,6 +140,7 @@ async def pending_clients_page(
         {"request": request, "user": user, "clients": clients_list}
     )
 
+
 @app.get("/completed", response_class=HTMLResponse)
 async def completed_clients_page(
     request: Request,
@@ -150,34 +157,36 @@ async def completed_clients_page(
 @app.get("/transaction", response_class=HTMLResponse)
 async def transaction_page(
     request: Request,
-    client_id: Optional[str] = Query(None),  # ← Now optional
+    client_id: Optional[str] = Query(None),
     user: dict = Depends(get_current_user_from_cookie),
     collection = Depends(get_clientms_collection)
 ):
-    # Handle missing client_id
-    if not client_id:
-        return RedirectResponse(
-            url="/view?error=Select a client to record payment",
-            status_code=status.HTTP_303_SEE_OTHER
+    # show payment form
+    if client_id:
+        try:
+            doc = collection.find_one({"_id": ObjectId(client_id)})
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid client ID")
+        if not doc:
+            return RedirectResponse(
+                url="/pending?error=Client not found",
+                status_code=status.HTTP_303_SEE_OTHER
+            )
+        doc["_id"] = str(doc["_id"])
+        client_data = ClientInDB(**doc)
+        return templates.TemplateResponse(
+            "transaction.html",
+            {"request": request, "user": user, "client": client_data}
         )
-    
-    # Fetch client
-    from bson import ObjectId
-    try:
-        client = collection.find_one({"_id": ObjectId(client_id)})
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid client ID format")
-    
-    if not client:
-        return RedirectResponse(
-            url="/view?error=Client not found",
-            status_code=status.HTTP_303_SEE_OTHER
-        )
-    
-    client["_id"] = str(client["_id"])
-    client_data = ClientInDB(**client)
-    
+
+    # show hub/selector
+    cursor = collection.find({"payment_status": "Pending"}).sort("due", -1)
+    pending_clients = []
+    for doc in cursor:
+        doc["_id"] = str(doc["_id"])
+        pending_clients.append(ClientInDB(**doc))
+
     return templates.TemplateResponse(
-        "transaction.html",
-        {"request": request, "user": user, "client": client_data}
+        "transaction_hub.html",
+        {"request": request, "user": user, "pending_clients": pending_clients}
     )
