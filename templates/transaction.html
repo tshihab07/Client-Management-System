@@ -13,7 +13,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         const form = document.getElementById('paymentForm');
         const amountPaid = document.getElementById('amount_paid');
-        const remainingDue = {{ client.due|default(0) }};
+        const remainingDue = parseFloat('{{ client.due|float|default(0) }}');
         
         form?.addEventListener('submit', (e) => {
             const val = parseFloat(amountPaid.value) || 0;
