@@ -1,18 +1,14 @@
 {% extends "base.html" %}
-
 {% block title %}View Clients — ClientMS{% endblock %}
-
 {% block header %}All Clients{% endblock %}
-
 {% block content %}
-
 {% if request.query_params.get('error') %}
 <div class="mb-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded-md text-sm">
     ⚠️ {{ request.query_params.get('error') }}
 </div>
 {% endif %}
 
-<!-- Search & Filter Bar -->
+<!-- search and filters -->
 <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
     <div class="p-4 bg-gray-50 border-b border-gray-200">
         <form method="get" class="flex flex-col md:flex-row gap-3">
@@ -49,8 +45,7 @@
             </div>
         </form>
     </div>
-
-    <!-- Results Info -->
+    <!-- client information -->
     <div class="px-6 py-3 border-b border-gray-200 bg-gray-50 text-sm text-gray-600">
         {% if clients %}
             Showing <span class="font-medium">{{ clients|length }}</span> client{{ clients|length != 1 and 's' or '' }}
@@ -58,46 +53,40 @@
             No clients found.
         {% endif %}
     </div>
-
-    <!-- Clients Table -->
+    <!-- client table -->
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 {% for client in clients %}
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="font-medium text-gray-900">{{ client.client_name }}</div>
-                        {% if client.phone %}
-                        <div class="text-sm text-gray-500">{{ client.phone }}</div>
-                        {% endif %}
+                        <a href="/client/{{ client.id }}" class="font-medium text-primary hover:underline">
+                            {{ client.client_name }}
+                        </a>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {{ client.phone or '—' }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ client.project }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ client.category }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ client.category or '—' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.amount) }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.paid) }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.due) }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        {% if client.payment_status == "Completed" %}
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
-                        {% else %}
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
-                        {% endif %}
-                    </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
                         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -111,7 +100,7 @@
     </div>
 </div>
 
-<!-- Action Links -->
+<!-- action links -->
 <div class="mt-4 flex flex-wrap gap-3">
     <a href="/pending" class="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md hover:bg-yellow-100">⚠️ Pending Only</a>
     <a href="/completed" class="px-4 py-2 bg-green-50 text-green-700 rounded-md hover:bg-green-100">✅ Completed Only</a>
