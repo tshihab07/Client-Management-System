@@ -1,23 +1,25 @@
-from pydantic import BaseModel, Field, validator
-from typing import Optional, List
+from pydantic import BaseModel, Field, validator, EmailStr
+from typing import Optional
 from datetime import datetime
 
-# core data models
+# Core data models
 class ClientBase(BaseModel):
     client_name: str = Field(..., min_length=1, example="John Doe")
+    phone: Optional[str] = None
+    email: Optional[EmailStr] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
     project: str = Field(..., min_length=1, example="Website Redesign")
     category: Optional[str] = None
-    phone: Optional[str] = None
     amount: float = Field(..., gt=0, example=15000.0)
     paid: float = Field(ge=0, example=5000.0)
-
 
     @validator('paid')
     def validate_paid(cls, v, values):
         amount = values.get('amount', 0)
         if v > amount:
             raise ValueError('Paid cannot exceed total amount')
-       
         return v
 
 
@@ -38,7 +40,7 @@ class ClientInDB(ClientBase):
 
 class ClientUpdate(BaseModel):
     paid: Optional[float] = None
-    # due will be auto-calculated
+    # `due` and `payment_status` are auto-calculated
 
 
 # Transaction Model
