@@ -38,12 +38,10 @@ app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(clients.router, prefix="/api", tags=["clients"])
 app.include_router(transactions.router, prefix="/api", tags=["transactions"])
 
-# === DEPENDENCIES (FIXED: No query params!) ===
+
 def get_clientms_collection():
-    """Hardcoded collection dependency — no query params needed."""
     return get_collection("ClientMS")
 
-# === ROUTES ===
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
@@ -69,10 +67,7 @@ async def admin_dashboard(
     user: dict = Depends(get_current_user_from_cookie),
     collection = Depends(get_clientms_collection)
 ):
-    # Get summary stats
     summary = await clients.get_summary_stats(collection=collection)
-    
-    # Get recent clients (top 10)
     cursor = collection.find().sort("created_at", -1).limit(10)
     recent_clients = []
     for doc in cursor:
@@ -90,7 +85,6 @@ async def admin_dashboard(
     )
 
 
-# Frontend Pages
 @app.get("/add", response_class=HTMLResponse)
 async def add_client_page(
     request: Request,
@@ -127,6 +121,7 @@ async def view_clients_page(
         {"request": request, "user": user, "clients": clients_list}
     )
 
+
 @app.get("/pending", response_class=HTMLResponse)
 async def pending_clients_page(
     request: Request,
@@ -139,6 +134,7 @@ async def pending_clients_page(
         "pending.html",
         {"request": request, "user": user, "clients": clients_list}
     )
+
 
 @app.get("/completed", response_class=HTMLResponse)
 async def completed_clients_page(
@@ -154,30 +150,61 @@ async def completed_clients_page(
     )
 
 
+# Safe handling + transaction history display
 @app.get("/transaction", response_class=HTMLResponse)
 async def transaction_page(
     request: Request,
-    client_id: Optional[str] = Query(None),  # ← Now optional
+    client_id: Optional[str] = Query(None),
     user: dict = Depends(get_current_user_from_cookie),
     collection = Depends(get_clientms_collection)
 ):
+    client_data = None
+    error = None
+
     if client_id:
         try:
-            client = collection.find_one({"_id": ObjectId(client_id)})
-        
+            obj_id = ObjectId(client_id)
+            client = collection.find_one({"_id": obj_id})
+            if not client:
+                error = "Client not found"
+            else:
+                client["_id"] = str(client["_id"])
+                client_data = ClientInDB(**client)
         except Exception:
-            raise HTTPException(status_code=400, detail="Invalid client ID")
-        
-        if not client:
-            return RedirectResponse(
-                url="/pending?error=Client not found",
-                status_code=status.HTTP_303_SEE_OTHER
-            )
-    
-    client["_id"] = str(client["_id"])
-    client_data = ClientInDB(**client)
-    
+            error = "Invalid client ID"
+    else:
+        error = "No client selected. Please choose a client from Pending list."
+
     return templates.TemplateResponse(
         "transaction.html",
-        {"request": request, "user": user, "client": client_data}
+        {
+            "request": request,
+            "user": user,
+            "client": client_data,
+            "error": error
+        }
     )
+
+
+# Read-only client detail page
+@app.get("/client/{client_id}", response_class=HTMLResponse)
+async def client_detail_page(
+    request: Request,
+    client_id: str,
+    user: dict = Depends(get_current_user_from_cookie),
+    collection = Depends(get_clientms_collection)
+):
+    try:
+        obj_id = ObjectId(client_id)
+        client = collection.find_one({"_id": obj_id})
+        if not client:
+            raise HTTPException(status_code=404, detail="Client not found")
+        
+        client["_id"] = str(client["_id"])
+        client_data = ClientInDB(**client)
+        return templates.TemplateResponse(
+            "client_detail.html",
+            {"request": request, "user": user, "client": client_data}
+        )
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid client ID")
