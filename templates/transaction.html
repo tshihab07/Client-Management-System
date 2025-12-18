@@ -1,20 +1,17 @@
 {% extends "base.html" %}
-
 {% block title %}Record Payment — ClientMS{% endblock %}
-
 {% block header %}Update Payment{% endblock %}
-
 {% block head %}
 <style>
     .client-summary { background-color: #F4E9D7; }
     .payment-form { max-width: 600px; margin: 0 auto; }
+    .tx-history-item { border-left: 2px solid #D97D55; padding-left: 12px; }
 </style>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const form = document.getElementById('paymentForm');
         const amountPaid = document.getElementById('amount_paid');
         const remainingDue = parseFloat('{{ client.due|float|default(0) }}');
-        
         form?.addEventListener('submit', (e) => {
             const val = parseFloat(amountPaid.value) || 0;
             if (val <= 0) {
@@ -25,28 +22,33 @@
             if (val > remainingDue + 0.01) {
                 e.preventDefault();
                 if (confirm(`This exceeds the due amount (৳${remainingDue.toFixed(2)}). Are you sure?`)) {
-                    return; // Allow override (e.g., for overpayment correction)
+                    return;
                 }
             }
         });
     });
 </script>
 {% endblock %}
-
 {% block content %}
+{% if error %}
+<div class="mb-4 p-3 bg-red-100 text-red-700 border border-red-200 rounded-md">
+    ❌ {{ error }}
+</div>
+{% endif %}
+
+{% if client %}
 <div class="payment-form">
-    <!-- Client Summary Card -->
+    <!-- client summary card -->
     <div class="client-summary rounded-xl p-5 mb-6">
         <div class="flex justify-between items-start">
             <div>
                 <h3 class="text-xl font-bold text-gray-800">{{ client.client_name }}</h3>
-                <p class="text-gray-600">{{ client.project }} • {{ client.category }}</p>
+                <p class="text-gray-600">{{ client.project }} • {{ client.category or '—' }}</p>
             </div>
             <span class="{% if client.payment_status == 'Completed' %}bg-green-100 text-green-800{% else %}bg-amber-100 text-amber-800{% endif %} px-3 py-1 rounded-full text-sm font-medium">
                 {{ client.payment_status }}
             </span>
         </div>
-        
         <div class="grid grid-cols-3 gap-4 mt-4">
             <div>
                 <p class="text-sm text-gray-500">Total Amount</p>
@@ -63,13 +65,11 @@
         </div>
     </div>
 
-    <!-- Payment Form -->
+    <!-- payment form -->
     <div class="bg-white rounded-xl shadow-sm p-6">
         <h4 class="text-lg font-semibold text-gray-800 mb-4">Record New Payment</h4>
-        
         <form id="paymentForm" method="post" action="/api/transactions">
             <input type="hidden" name="client_id" value="{{ client.id }}">
-            
             <div class="mb-4">
                 <label for="amount_paid" class="block text-sm font-medium text-gray-700 mb-1">
                     Payment Amount (৳) *
@@ -94,7 +94,6 @@
                     Enter amount received. Remaining due will update automatically.
                 </p>
             </div>
-
             <div class="mb-6">
                 <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
                 <textarea 
@@ -105,7 +104,6 @@
                     placeholder="e.g., Bank transfer, Cash, etc."
                 ></textarea>
             </div>
-
             <div class="flex flex-wrap gap-3">
                 <button 
                     type="submit"
@@ -118,24 +116,43 @@
         </form>
     </div>
 
-    <!-- Payment History -->
+    <!-- payment history -->
     {% if client.payment_history and client.payment_history|length > 0 %}
     <div class="mt-6 bg-white rounded-xl shadow-sm p-6">
-        <h4 class="text-lg font-semibold text-gray-800 mb-3">Payment History</h4>
-        <div class="space-y-3">
+        <h4 class="text-lg font-semibold text-gray-800 mb-3">Payment History ({{ client.payment_history|length }})</h4>
+        <div class="space-y-4">
             {% for tx in client.payment_history|reverse %}
-            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-md">
-                <div>
-                    <span class="font-medium">৳{{ "%.2f"|format(tx.amount) }}</span>
-                    {% if tx.notes %}— {{ tx.notes }}{% endif %}
+            <div class="tx-history-item">
+                <div class="flex justify-between">
+                    <span class="font-medium text-gray-900">৳{{ "%.2f"|format(tx.amount) }}</span>
+                    <span class="text-xs text-gray-500">{{ tx.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
                 </div>
-                <div class="text-sm text-gray-500">
-                    {{ tx.timestamp.strftime('%Y-%m-%d %H:%M') }}
-                </div>
+                {% if tx.notes %}
+                <p class="text-sm text-gray-600 mt-1">{{ tx.notes }}</p>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
     </div>
+    {% else %}
+    <div class="mt-6 bg-white rounded-xl shadow-sm p-6 text-center text-gray-500">
+        <svg class="mx-auto h-10 w-10 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+        </svg>
+        <p class="mt-2">No payments recorded yet.</p>
+    </div>
     {% endif %}
 </div>
+{% else %}
+<div class="bg-white rounded-xl shadow-sm p-12 text-center">
+    <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+    </svg>
+    <h3 class="mt-4 text-lg font-medium text-gray-900">No client selected</h3>
+    <p class="mt-1 text-gray-500">Please go to <a href="/pending" class="text-primary hover:underline">Pending Clients</a> and select one.</p>
+    <a href="/pending" class="mt-4 inline-block px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90">
+        Go to Pending List
+    </a>
+</div>
+{% endif %}
 {% endblock %}
