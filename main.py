@@ -12,14 +12,14 @@ from models import ClientInDB
 from security import get_current_user_from_cookie
 from routers import auth, clients, transactions
 
-# Lifespan context manager
+# lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await connect_to_mongo()
     yield
     await close_mongo_connection()
 
-# Initialize app
+# initialize app
 app = FastAPI(
     title="ClientMS Admin Panel",
     description="Secure client management dashboard",
@@ -27,13 +27,13 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Mount static files
+# mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Setup templates
 templates = Jinja2Templates(directory="templates")
 
-# Include API routers
+# include API routers
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(clients.router, prefix="/api", tags=["clients"])
 app.include_router(transactions.router, prefix="/api", tags=["transactions"])
@@ -60,7 +60,7 @@ async def logout():
     return response
 
 
-# Admin Dashboard — REAL DATA
+# admin Dashboard
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_dashboard(
     request: Request,
@@ -150,7 +150,7 @@ async def completed_clients_page(
     )
 
 
-# Safe handling + transaction history display
+# safe handling and transaction history display
 @app.get("/transaction", response_class=HTMLResponse)
 async def transaction_page(
     request: Request,
@@ -186,7 +186,7 @@ async def transaction_page(
     )
 
 
-# Read-only client detail page
+# read-only client detail page
 @app.get("/client/{client_id}", response_class=HTMLResponse)
 async def client_detail_page(
     request: Request,
