@@ -4,8 +4,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import Optional, List
 from bson import ObjectId
+from dateutil import parser
 
 from database import connect_to_mongo, close_mongo_connection, get_collection
 from models import ClientInDB
@@ -210,10 +211,6 @@ async def client_detail_page(
         raise HTTPException(status_code=400, detail="Invalid client ID")
 
 
-# ===== REPLACE the existing /transaction AND /client/{client_id} routes with these =====
-
-from typing import List
-
 @app.get("/transaction", response_class=HTMLResponse)
 async def transaction_global_page(
     request: Request,
@@ -226,6 +223,7 @@ async def transaction_global_page(
     client_query = {}
     if status_filter in ["Completed", "Pending"]:
         client_query["payment_status"] = status_filter
+    
     if phone_search:
         client_query["phone"] = {"$regex": phone_search.strip(), "$options": "i"}
 
@@ -239,23 +237,15 @@ async def transaction_global_page(
     # In the global transaction route — replace the payment flattening loop with:
     all_payments = []
     for client in clients:
-        # ✅ Safely get payment history (fallback to empty list)
-        history = client.dict().get("payment_history") or []
+        history = client.payment_history or []
+        history = sorted(history, key=lambda x: x.timestamp)
+        
         if not isinstance(history, list):
             history = []
         
-        # Ensure timestamps are datetime objects (for sorting)
-        for tx in history:
-            if isinstance(tx.get("timestamp"), str):
-                from dateutil import parser
-                try:
-                    tx["timestamp"] = parser.isoparse(tx["timestamp"])
-                except:
-                    tx["timestamp"] = client.created_at  # fallback
-        
         # Enrich payments
         for i, tx in enumerate(history):
-            paid_so_far = sum(h["amount"] for h in history[:i+1])
+            paid_so_far = tx.amount
             remaining_after = max(0.0, round(client.amount - paid_so_far, 2))
 
             all_payments.append({
@@ -264,9 +254,9 @@ async def transaction_global_page(
                 "phone": client.phone or "—",
                 "project": client.project,
                 "category": client.category or "—",
-                "amount_paid": tx["amount"],
-                "timestamp": tx["timestamp"],
-                "notes": tx.get("notes") or "—",
+                "amount_paid": tx.amount,
+                "timestamp": tx.timestamp,
+                "notes": tx.notes or "—",
                 "remaining_after": remaining_after,
                 "client_status": client.payment_status
         })
@@ -305,7 +295,7 @@ async def transaction_client_page(
         # Enrich payment history with cumulative due
         history_enriched = []
         paid_total = 0.0
-        for tx in (getattr(client_data, 'payment_history', []) or []):
+        for tx in client_data.payment_history:
             paid_total += tx["amount"]
             remaining = max(0.0, round(client_data.amount - paid_total, 2))
             history_enriched.append({
