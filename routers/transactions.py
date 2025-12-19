@@ -40,14 +40,14 @@ async def record_transaction(
         amount_to_add = float(amount_paid)
     except (ValueError, TypeError):
         return RedirectResponse(
-            url=f"/transaction?client_id={client_id}&error=Invalid numeric values",
+            url=f"/payment?client_id={client_id}&error=Invalid numeric values",
             status_code=status.HTTP_303_SEE_OTHER
         )
 
     # Validate amount
     if amount_to_add <= 0:
         return RedirectResponse(
-            url=f"/transaction?client_id={client_id}&error=Payment amount must be greater than 0",
+            url=f"/payment?client_id={client_id}&error=Payment amount must be greater than 0",
             status_code=status.HTTP_303_SEE_OTHER
         )
 
@@ -61,7 +61,7 @@ async def record_transaction(
 
     if new_due < 0:
         return RedirectResponse(
-            url=f"/transaction?client_id={client_id}&error=Overpayment: total paid ({new_paid}) exceeds amount ({current_amount})",
+            url=f"/payment?client_id={client_id}&error=Overpayment: total paid ({new_paid}) exceeds amount ({current_amount})",
             status_code=status.HTTP_303_SEE_OTHER
         )
 
@@ -89,7 +89,7 @@ async def record_transaction(
 
     if result.modified_count == 0:
         return RedirectResponse(
-            url=f"/transaction?client_id={client_id}&error=Failed to update database",
+            url=f"/payment?client_id={client_id}&error=Failed to update database",
             status_code=status.HTTP_303_SEE_OTHER
         )
 

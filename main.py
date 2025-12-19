@@ -150,8 +150,8 @@ async def completed_clients_page(
     )
 
 
-# safe handling and transaction history display
-@app.get("/transaction", response_class=HTMLResponse)
+# update payment route
+@app.get("/payment", response_class=HTMLResponse)
 async def transaction_page(
     request: Request,
     client_id: Optional[str] = Query(None),
@@ -176,7 +176,7 @@ async def transaction_page(
         error = "No client selected. Please choose a client from Pending list."
 
     return templates.TemplateResponse(
-        "transaction.html",
+        "update_payment.html",
         {
             "request": request,
             "user": user,
@@ -205,6 +205,122 @@ async def client_detail_page(
         return templates.TemplateResponse(
             "client_detail.html",
             {"request": request, "user": user, "client": client_data}
+        )
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid client ID")
+
+
+# ===== REPLACE the existing /transaction AND /client/{client_id} routes with these =====
+
+from typing import List
+
+@app.get("/transaction", response_class=HTMLResponse)
+async def transaction_global_page(
+    request: Request,
+    status_filter: Optional[str] = Query(None, alias="status"),  # "Completed", "Pending", or None for All
+    phone_search: Optional[str] = Query(None, alias="phone"),
+    user: dict = Depends(get_current_user_from_cookie),
+    collection = Depends(get_clientms_collection)
+):
+    # Build client query
+    client_query = {}
+    if status_filter in ["Completed", "Pending"]:
+        client_query["payment_status"] = status_filter
+    if phone_search:
+        client_query["phone"] = {"$regex": phone_search.strip(), "$options": "i"}
+
+    # Fetch all matching clients
+    cursor = collection.find(client_query)
+    clients = []
+    for doc in cursor:
+        doc["_id"] = str(doc["_id"])
+        clients.append(ClientInDB(**doc))
+
+    # In the global transaction route — replace the payment flattening loop with:
+    all_payments = []
+    for client in clients:
+        # ✅ Safely get payment history (fallback to empty list)
+        history = client.dict().get("payment_history") or []
+        if not isinstance(history, list):
+            history = []
+        
+        # Ensure timestamps are datetime objects (for sorting)
+        for tx in history:
+            if isinstance(tx.get("timestamp"), str):
+                from dateutil import parser
+                try:
+                    tx["timestamp"] = parser.isoparse(tx["timestamp"])
+                except:
+                    tx["timestamp"] = client.created_at  # fallback
+        
+        # Enrich payments
+        for i, tx in enumerate(history):
+            paid_so_far = sum(h["amount"] for h in history[:i+1])
+            remaining_after = max(0.0, round(client.amount - paid_so_far, 2))
+
+            all_payments.append({
+                "client_id": client.id,
+                "client_name": client.client_name,
+                "phone": client.phone or "—",
+                "project": client.project,
+                "category": client.category or "—",
+                "amount_paid": tx["amount"],
+                "timestamp": tx["timestamp"],
+                "notes": tx.get("notes") or "—",
+                "remaining_after": remaining_after,
+                "client_status": client.payment_status
+        })
+
+    # Sort by timestamp (most recent first)
+    all_payments.sort(key=lambda x: x["timestamp"], reverse=True)
+
+    return templates.TemplateResponse(
+        "transaction_global.html",
+        {
+            "request": request,
+            "user": user,
+            "payments": all_payments,
+            "status_filter": status_filter,
+            "phone_search": phone_search or ""
+        }
+    )
+
+
+@app.get("/transaction/client/{client_id}", response_class=HTMLResponse)
+async def transaction_client_page(
+    request: Request,
+    client_id: str,
+    user: dict = Depends(get_current_user_from_cookie),
+    collection = Depends(get_clientms_collection)
+):
+    try:
+        obj_id = ObjectId(client_id)
+        client = collection.find_one({"_id": obj_id})
+        if not client:
+            raise HTTPException(status_code=404, detail="Client not found")
+        
+        client["_id"] = str(client["_id"])
+        client_data = ClientInDB(**client)
+
+        # Enrich payment history with cumulative due
+        history_enriched = []
+        paid_total = 0.0
+        for tx in (getattr(client_data, 'payment_history', []) or []):
+            paid_total += tx["amount"]
+            remaining = max(0.0, round(client_data.amount - paid_total, 2))
+            history_enriched.append({
+                **tx,
+                "remaining_after": remaining
+            })
+
+        return templates.TemplateResponse(
+            "transaction_client.html",
+            {
+                "request": request,
+                "user": user,
+                "client": client_data,
+                "payment_history": history_enriched
+            }
         )
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid client ID")
