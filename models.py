@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, validator, EmailStr
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 # Core data models
@@ -22,6 +22,12 @@ class ClientBase(BaseModel):
             raise ValueError('Paid cannot exceed total amount')
         return v
 
+# record client payment history
+class PaymentRecord(BaseModel):
+    amount: float
+    timestamp: datetime
+    notes: Optional[str] = None
+
 
 class ClientCreate(ClientBase):
     pass
@@ -33,6 +39,7 @@ class ClientInDB(ClientBase):
     payment_status: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+    payment_history: List[PaymentRecord] = Field(default_factory=list)
 
     class Config:
         populate_by_name = True
