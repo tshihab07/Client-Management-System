@@ -21,7 +21,8 @@ async def create_client(client: ClientCreate, collection = Depends(get_client_co
         "due": due,
         "payment_status": payment_status,
         "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow()
+        "updated_at": datetime.utcnow(),
+        "payment_history": []
     })
     
     # Insert
