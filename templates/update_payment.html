@@ -91,7 +91,7 @@
                     </div>
                 </div>
                 <p class="mt-1 text-xs text-gray-500">
-                    Enter amount received. Remaining due will update automatically.
+                    Enter amount received.
                 </p>
             </div>
             <div class="mb-6">
@@ -109,50 +109,11 @@
                     type="submit"
                     class="px-6 py-2.5 bg-primary hover:bg-opacity-90 text-white font-medium rounded-md transition shadow-sm"
                 >
-                    ✅ Confirm Payment
+                    Confirm Payment
                 </button>
                 <a href="/view" class="px-4 py-2.5 text-gray-600 hover:text-primary">← Cancel</a>
             </div>
         </form>
     </div>
-
-    <!-- payment history -->
-    {% if client.payment_history and client.payment_history|length > 0 %}
-    <div class="mt-6 bg-white rounded-xl shadow-sm p-6">
-        <h4 class="text-lg font-semibold text-gray-800 mb-3">Payment History ({{ client.payment_history|length }})</h4>
-        <div class="space-y-4">
-            {% for tx in client.payment_history|reverse %}
-            <div class="tx-history-item">
-                <div class="flex justify-between">
-                    <span class="font-medium text-gray-900">৳{{ "%.2f"|format(tx.amount) }}</span>
-                    <span class="text-xs text-gray-500">{{ tx.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
-                </div>
-                {% if tx.notes %}
-                <p class="text-sm text-gray-600 mt-1">{{ tx.notes }}</p>
-                {% endif %}
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% else %}
-    <div class="mt-6 bg-white rounded-xl shadow-sm p-6 text-center text-gray-500">
-        <svg class="mx-auto h-10 w-10 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-        </svg>
-        <p class="mt-2">No payments recorded yet.</p>
-    </div>
-    {% endif %}
-</div>
-{% else %}
-<div class="bg-white rounded-xl shadow-sm p-12 text-center">
-    <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-    </svg>
-    <h3 class="mt-4 text-lg font-medium text-gray-900">No client selected</h3>
-    <p class="mt-1 text-gray-500">Please go to <a href="/pending" class="text-primary hover:underline">Pending Clients</a> and select one.</p>
-    <a href="/pending" class="mt-4 inline-block px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90">
-        Go to Pending List
-    </a>
-</div>
 {% endif %}
 {% endblock %}
