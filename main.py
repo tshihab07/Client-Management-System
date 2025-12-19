@@ -322,5 +322,6 @@ async def transaction_client_page(
                 "payment_history": history_enriched
             }
         )
+    
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid client ID")
