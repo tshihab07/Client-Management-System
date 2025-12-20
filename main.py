@@ -4,13 +4,14 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
-from typing import Optional, List
+from typing import Optional
 from bson import ObjectId
-from dateutil import parser
+from bson.errors import InvalidId
+from jose import jwt, JWTError
 
 from database import connect_to_mongo, close_mongo_connection, get_collection
 from models import ClientInDB
-from security import get_current_user_from_cookie
+from security import get_current_user_from_cookie, SECRET_KEY, ALGORITHM
 from routers import auth, clients, transactions
 
 # lifespan context manager
@@ -34,6 +35,37 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Setup templates
 templates = Jinja2Templates(directory="templates")
 
+# Global Auth Middleware (CRITICAL)
+PUBLIC_PATHS = (
+    "/login",
+    "/auth/login",
+    "/auth/token",
+    "/static",
+    "/favicon.ico"
+)
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    path = request.url.path
+
+    # allow public paths
+    if path.startswith(PUBLIC_PATHS):
+        return await call_next(request)
+
+    token = request.cookies.get("access_token")
+    if not token:
+        return RedirectResponse("/login", status_code=status.HTTP_303_SEE_OTHER)
+
+    if token.startswith("Bearer "):
+        token = token[7:]
+
+    try:
+        jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:
+        return RedirectResponse("/login", status_code=status.HTTP_303_SEE_OTHER)
+
+    return await call_next(request)
+
 # include API routers
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(clients.router, prefix="/api", tags=["clients"])
@@ -56,7 +88,7 @@ async def login_page(request: Request):
 
 @app.post("/logout")
 async def logout():
-    response = RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+    response = RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
     response.delete_cookie(key="access_token", path="/", httponly=True, samesite="lax")
     return response
 
@@ -68,9 +100,11 @@ async def admin_dashboard(
     user: dict = Depends(get_current_user_from_cookie),
     collection = Depends(get_clientms_collection)
 ):
+    
     summary = await clients.get_summary_stats(collection=collection)
     cursor = collection.find().sort("created_at", -1).limit(10)
     recent_clients = []
+
     for doc in cursor:
         doc["_id"] = str(doc["_id"])
         recent_clients.append(ClientInDB(**doc))
@@ -102,17 +136,20 @@ async def view_clients_page(
     user: dict = Depends(get_current_user_from_cookie),
     collection = Depends(get_clientms_collection)
 ):
+    
     query = {}
     if search:
         query["$or"] = [
             {"client_name": {"$regex": search, "$options": "i"}},
             {"phone": {"$regex": search, "$options": "i"}}
         ]
+    
     if payment_status:
         query["payment_status"] = payment_status
     
     cursor = collection.find(query).sort("created_at", -1)
     clients_list = []
+    
     for doc in cursor:
         doc["_id"] = str(doc["_id"])
         clients_list.append(ClientInDB(**doc))
@@ -129,8 +166,10 @@ async def pending_clients_page(
     user: dict = Depends(get_current_user_from_cookie),
     collection = Depends(get_clientms_collection)
 ):
+    
     cursor = collection.find({"payment_status": "Pending"}).sort("due", -1)
     clients_list = [ClientInDB(**{**doc, "_id": str(doc["_id"])}) for doc in cursor]
+    
     return templates.TemplateResponse(
         "pending.html",
         {"request": request, "user": user, "clients": clients_list}
@@ -283,35 +322,55 @@ async def transaction_client_page(
     user: dict = Depends(get_current_user_from_cookie),
     collection = Depends(get_clientms_collection)
 ):
+    # Try to fetch client by ObjectId first
+    client = None
     try:
         obj_id = ObjectId(client_id)
         client = collection.find_one({"_id": obj_id})
-        if not client:
-            raise HTTPException(status_code=404, detail="Client not found")
-        
-        client["_id"] = str(client["_id"])
-        client_data = ClientInDB(**client)
+    except InvalidId:
+        # client_id is not a valid ObjectId → ignore
+        pass
 
-        # Enrich payment history with cumulative due
-        history_enriched = []
-        paid_total = 0.0
-        for tx in client_data.payment_history:
-            paid_total += tx["amount"]
-            remaining = max(0.0, round(client_data.amount - paid_total, 2))
-            history_enriched.append({
-                **tx,
-                "remaining_after": remaining
-            })
+    # Fallback: try string-based _id (for legacy data)
+    if not client:
+        client = collection.find_one({"_id": client_id})
 
-        return templates.TemplateResponse(
-            "transaction_client.html",
-            {
-                "request": request,
-                "user": user,
-                "client": client_data,
-                "payment_history": history_enriched
-            }
-        )
-    
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid client ID")
+    # If still not found → real 404
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    # Normalize and load into Pydantic model
+    client["_id"] = str(client["_id"])
+    client_data = ClientInDB(**client)
+
+    # Enrich payment history with cumulative remaining balance
+    history_enriched = []
+    paid_total = 0.0
+
+    # Ensure chronological order
+    payment_history = sorted(
+        client_data.payment_history,
+        key=lambda x: x.timestamp
+    )
+
+    for tx in payment_history:
+        paid_total += tx.amount
+        remaining = max(0.0, round(client_data.amount - paid_total, 2))
+
+        history_enriched.append({
+            "amount": tx.amount,
+            "timestamp": tx.timestamp,
+            "notes": tx.notes,
+            "remaining_after": remaining
+        })
+
+    # Render template
+    return templates.TemplateResponse(
+        "transaction_client.html",
+        {
+            "request": request,
+            "user": user,
+            "client": client_data,
+            "payment_history": history_enriched
+        }
+    )
