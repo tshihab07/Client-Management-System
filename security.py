@@ -2,10 +2,11 @@ import os
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
+from jose.exceptions import ExpiredSignatureError
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
-from models import UserInDB, Token
+from models import UserInDB
 
 # Load environment
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -60,42 +61,45 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserInDB:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: Optional[str] = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-    
-    except JWTError:
-        raise credentials_exception
-    
-    if username != ADMIN_USER.username:
-        raise credentials_exception
-    
-    return ADMIN_USER
-
-
-async def get_current_user_from_cookie(request: Request) -> UserInDB:
-    """Extract token from HTTP-only cookie — used for web UI."""
-    token = request.cookies.get("access_token")
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_307_TEMPORARY_REDIRECT,
-            headers={"Location": "/login"}
-        )
-    
-    # Remove 'Bearer ' prefix if present
-    if token.startswith("Bearer "):
-        token = token[7:]
-    
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: Optional[str] = payload.get("sub")
         
         if username != ADMIN_USER.username:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid user")
-        
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+    
         return ADMIN_USER
     
     except JWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, headers={"WWW-Authenticate": "Bearer"},)
+
+
+async def get_current_user_from_cookie(request: Request) -> UserInDB:
+    token = request.cookies.get("access_token")
+
+    if not token:
         raise HTTPException(
-            status_code=status.HTTP_307_TEMPORARY_REDIRECT,
+            status_code=status.HTTP_303_SEE_OTHER,
+            headers={"Location": "/login"}
+        )
+
+    if token.startswith("Bearer "):
+        token = token[7:]
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: Optional[str] = payload.get("sub")
+
+        if username != ADMIN_USER.username:
+            raise HTTPException
+
+        return ADMIN_USER
+
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_303_SEE_OTHER,
             headers={"Location": "/login?error=session_expired"}
+        )
+
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_303_SEE_OTHER,
+            headers={"Location": "/login"}
         )
