@@ -8,6 +8,11 @@ from security import authenticate_user, create_access_token, ACCESS_TOKEN_EXPIRE
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
+router.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
 @router.post("/login", response_class=HTMLResponse)
 async def login_for_access_token(
     request: Request,
@@ -34,7 +39,7 @@ async def login_for_access_token(
     response.set_cookie(
         key="access_token",
         value=f"Bearer {access_token}",
-        httponly=True,        # JavaScript cannot access
+        httponly=True,
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         path="/",
         samesite="lax",       # Prevent CSRF
