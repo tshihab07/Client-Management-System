@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Add Client — ClientMS{% endblock %}
 {% block header %}Add New Client{% endblock %}
+
 {% block head %}
 <style>
     .form-card { max-width: 700px; margin: 0 auto; }
 </style>
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const amount = document.getElementById('amount');
@@ -23,6 +25,7 @@
     });
 </script>
 {% endblock %}
+
 {% block content %}
 <div class="form-card bg-white rounded-xl shadow-sm p-6">
     <form id="addClientForm" class="space-y-6">
@@ -42,9 +45,9 @@
                     name="client_name"
                     required
                     class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="e.g., John Doe"
-                >
+                    placeholder="e.g., John Doe">
             </div>
+            
             <div class="flex-1">
                 <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone (Optional)</label>
                 <input 
@@ -52,8 +55,7 @@
                     id="phone" 
                     name="phone"
                     class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="e.g., +8801XXXXXXXXX"
-                >
+                    placeholder="e.g., +8801XXXXXXXXX">
             </div>
         </div>
 
@@ -66,9 +68,9 @@
                     id="email" 
                     name="email"
                     class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="e.g., user@example.com"
-                >
+                    placeholder="e.g., user@example.com">
             </div>
+
             <div class="flex-1">
                 <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Address (Optional)</label>
                 <input 
@@ -76,12 +78,11 @@
                     id="address" 
                     name="address"
                     class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="e.g., 123 Main St"
-                >
+                    placeholder="e.g., 123 Main St">
             </div>
         </div>
 
-        <!-- Row 3: City & Country -->
+        <!-- row 3: city & country -->
         <div class="flex flex-col md:flex-row md:gap-4">
             <div class="flex-1">
                 <label for="city" class="block text-sm font-medium text-gray-700 mb-1">City (Optional)</label>
@@ -90,9 +91,9 @@
                     id="city" 
                     name="city"
                     class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="e.g., Dhaka"
-                >
+                    placeholder="e.g., Dhaka">
             </div>
+
             <div class="flex-1">
                 <label for="country" class="block text-sm font-medium text-gray-700 mb-1">Country (Optional)</label>
                 <input 
@@ -100,8 +101,7 @@
                     id="country" 
                     name="country"
                     class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="e.g., Bangladesh"
-                >
+                    placeholder="e.g., Bangladesh">
             </div>
         </div>
 
@@ -115,16 +115,16 @@
                     name="project"
                     required
                     class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="e.g., Website Redesign"
-                >
+                    placeholder="e.g., Website Redesign">
             </div>
+
             <div class="flex-1">
                 <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                
                 <select 
                     id="category" 
                     name="category"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                >
+                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent">
                     <option value="">Select a category</option>
                     <option value="Web Development">Web Development</option>
                     <option value="Mobile App">Mobile App</option>
@@ -148,11 +148,12 @@
                     min="0.01"
                     required
                     class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="e.g., 15000.00"
-                >
+                    placeholder="e.g., 15000.00">
             </div>
+
             <div class="flex-1">
                 <label for="paid" class="block text-sm font-medium text-gray-700 mb-1">Paid Amount (৳) *</label>
+                
                 <input 
                     type="number" 
                     id="paid" 
@@ -162,19 +163,18 @@
                     required
                     class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                     placeholder="e.g., 5000.00"
-                    value="0.00"
-                >
+                    value="0.00">
             </div>
         </div>
+        
         <div>
-            <label for="due" class="block text-sm font-medium text-gray-700 mb-1">Due Amount (৳) — Auto-calculated</label>
+            <label for="due" class="block text-sm font-medium text-gray-700 mb-1">Due Amount (৳)</label>
             <input 
                 type="text" 
                 id="due" 
                 readonly
                 class="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700"
-                value="0.00"
-            >
+                value="0.00">
             <p class="mt-1 text-xs text-gray-500">Due = Total Amount - Paid</p>
         </div>
 
@@ -182,11 +182,10 @@
         <div class="pt-4">
             <button 
                 type="submit"
-                class="px-6 py-2.5 bg-primary hover:bg-opacity-90 text-white font-medium rounded-md transition shadow-sm"
-            >
-                ✅ Add Client
+                class="px-6 py-2.5 bg-primary hover:bg-opacity-90 text-white font-medium rounded-md transition shadow-sm">
+                Add Client
             </button>
-            <a href="/admin" class="ml-3 text-gray-600 hover:text-primary">← Cancel</a>
+            <a href="/admin" class="ml-3 text-gray-600 hover:text-primary">Cancel</a>
         </div>
     </form>
 </div>
@@ -210,19 +209,22 @@ document.getElementById('addClientForm').addEventListener('submit', async (e) =>
 
     // validation
     if (!clientData.client_name || !clientData.project) {
-        alert('⚠️ Client Name and Project are required.');
+        alert('Client Name and Project are required.');
         return;
     }
+
     if (isNaN(clientData.amount) || clientData.amount <= 0) {
-        alert('⚠️ Total amount must be a positive number.');
+        alert('Total amount must be a positive number.');
         return;
     }
+
     if (isNaN(clientData.paid) || clientData.paid < 0) {
-        alert('⚠️ Paid amount must be a non-negative number.');
+        alert('Paid amount must be a non-negative number.');
         return;
     }
+
     if (clientData.paid > clientData.amount) {
-        if (!confirm('⚠️ Paid amount exceeds total. Proceed anyway?')) return;
+        if (!confirm('Paid amount exceeds total. Proceed anyway?')) return;
     }
 
     try {
@@ -231,18 +233,22 @@ document.getElementById('addClientForm').addEventListener('submit', async (e) =>
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(clientData)
         });
+
         const result = await response.json();
         if (response.ok) {
-            alert('✅ Client added successfully!');
+            alert('Client added successfully!');
             window.location.href = '/admin';
-        } else {
+        }
+        else {
             const errMsg = Array.isArray(result.detail) 
                 ? result.detail.map(d => d.msg).join('; ') 
                 : result.detail || 'Unknown error';
-            alert('❌ Failed: ' + errMsg);
+            alert('Failed: ' + errMsg);
         }
-    } catch (err) {
-        alert('❌ Network error: ' + err.message);
+    }
+    
+    catch (err) {
+        alert('Network error: ' + err.message);
     }
 });
 </script>
