@@ -13,6 +13,7 @@
         </div>
         <p class="mt-1 text-sm text-green-700">Sorted by most recent first</p>
     </div>
+
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
@@ -24,6 +25,7 @@
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 </tr>
             </thead>
+
             <tbody class="bg-white divide-y divide-gray-200">
                 {% for client in clients %}
                 <tr class="hover:bg-green-50">
@@ -36,6 +38,7 @@
                     </td>
                 </tr>
                 {% else %}
+
                 <tr>
                     <td colspan="5" class="px-6 py-8 text-center text-gray-500">
                         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -50,8 +53,8 @@
         </table>
     </div>
 </div>
+
 <div class="mt-4 flex flex-wrap gap-3">
-    <a href="/view" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">← Back to All Clients</a>
-    <a href="/add" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90">➕ Add New Client</a>
+    <a href="/view" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">View All Clients</a>
 </div>
 {% endblock %}
