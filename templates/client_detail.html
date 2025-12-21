@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Client Detail — {{ client.client_name }}{% endblock %}
 {% block header %}Client Details{% endblock %}
+
 {% block content %}
 <div class="max-w-4xl mx-auto">
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -8,6 +9,7 @@
             <h2 class="text-xl font-bold text-gray-800">{{ client.client_name }}</h2>
             <p class="text-gray-600">{{ client.project }} • {{ client.category or '—' }}</p>
         </div>
+
         <div class="p-6 space-y-5">
             <!-- client information -->
             <div>
@@ -17,18 +19,22 @@
                         <dt class="text-sm font-medium text-gray-500">Phone</dt>
                         <dd class="text-gray-900">{{ client.phone or '—' }}</dd>
                     </div>
+
                     <div>
                         <dt class="text-sm font-medium text-gray-500">Email</dt>
                         <dd class="text-gray-900">{{ client.email or '—' }}</dd>
                     </div>
+
                     <div class="md:col-span-2">
                         <dt class="text-sm font-medium text-gray-500">Address</dt>
                         <dd class="text-gray-900">{{ client.address or '—' }}</dd>
                     </div>
+
                     <div>
                         <dt class="text-sm font-medium text-gray-500">City</dt>
                         <dd class="text-gray-900">{{ client.city or '—' }}</dd>
                     </div>
+
                     <div>
                         <dt class="text-sm font-medium text-gray-500">Country</dt>
                         <dd class="text-gray-900">{{ client.country or '—' }}</dd>
@@ -44,10 +50,12 @@
                         <dt class="text-sm font-medium text-gray-500">Total Amount</dt>
                         <dd class="text-lg font-bold text-gray-900">৳{{ "%.2f"|format(client.amount) }}</dd>
                     </div>
+
                     <div>
                         <dt class="text-sm font-medium text-gray-500">Paid</dt>
                         <dd class="text-lg font-bold text-primary">৳{{ "%.2f"|format(client.paid) }}</dd>
                     </div>
+
                     <div>
                         <dt class="text-sm font-medium text-gray-500">Due</dt>
                         <dd class="text-lg font-bold {% if client.due > 0 %}text-amber-700{% else %}text-green-700{% endif %}">
@@ -73,10 +81,10 @@
     </div>
 
     <div class="mt-4 flex gap-3">
-        <a href="/view" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">← Back to All Clients</a>
+        <a href="/view" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">View All Clients</a>
         {% if client.payment_status == 'Pending' %}
         <a href="/transaction?client_id={{ client.id }}" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90">
-            ➕ Record Payment
+            ➕ Add Payment
         </a>
         {% endif %}
     </div>
