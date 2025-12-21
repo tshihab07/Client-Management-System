@@ -8,6 +8,7 @@ from typing import Optional
 from bson import ObjectId
 from bson.errors import InvalidId
 from jose import jwt, JWTError
+from math import ceil
 
 from database import connect_to_mongo, close_mongo_connection, get_collection
 from models import ClientInDB
@@ -34,6 +35,9 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Setup templates
 templates = Jinja2Templates(directory="templates")
+
+# set number of items per page
+PAGE_SIZE = 20
 
 # Global Auth Middleware (CRITICAL)
 PUBLIC_PATHS = (
@@ -97,14 +101,18 @@ async def logout():
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_dashboard(
     request: Request,
+    page: int = Query(1, ge=1),
     user: dict = Depends(get_current_user_from_cookie),
     collection = Depends(get_clientms_collection)
 ):
     
     summary = await clients.get_summary_stats(collection=collection)
-    cursor = collection.find().sort("created_at", -1).limit(10)
-    recent_clients = []
 
+    total_clients = collection.count_documents({})
+    total_pages = ceil(total_clients / PAGE_SIZE)
+    cursor = collection.find().sort("created_at", -1).skip((page - 1) * PAGE_SIZE).limit(PAGE_SIZE)
+    
+    recent_clients = []
     for doc in cursor:
         doc["_id"] = str(doc["_id"])
         recent_clients.append(ClientInDB(**doc))
@@ -115,7 +123,10 @@ async def admin_dashboard(
             "request": request,
             "user": user,
             "summary": summary,
-            "clients": recent_clients
+            "clients": recent_clients,
+            "page": page,
+            "total_pages": total_pages,
+            "total_clients": total_clients,
         }
     )
 
@@ -131,6 +142,7 @@ async def add_client_page(
 @app.get("/view", response_class=HTMLResponse)
 async def view_clients_page(
     request: Request,
+    page: int = Query(1, ge=1),
     search: Optional[str] = Query(None),
     payment_status: Optional[str] = Query(None),
     user: dict = Depends(get_current_user_from_cookie),
@@ -147,7 +159,9 @@ async def view_clients_page(
     if payment_status:
         query["payment_status"] = payment_status
     
-    cursor = collection.find(query).sort("created_at", -1)
+    total_clients = collection.count_documents(query)
+    total_pages = ceil(total_clients / PAGE_SIZE)
+    cursor = collection.find(query).sort("created_at", -1).skip((page - 1) * PAGE_SIZE).limit(PAGE_SIZE)
     clients_list = []
     
     for doc in cursor:
@@ -156,7 +170,13 @@ async def view_clients_page(
     
     return templates.TemplateResponse(
         "view_clients.html",
-        {"request": request, "user": user, "clients": clients_list}
+        {"request": request,
+        "user": user,
+        "clients": clients_list,
+        "total_pages": total_pages,
+        "total_clients": total_clients,
+        "page": page
+        }
     )
 
 
