@@ -1,13 +1,12 @@
-<!-- templates/transaction_global.html -->
 {% extends "base.html" %}
 {% block title %}Global Payment History — ClientMS{% endblock %}
 {% block header %}Transaction History{% endblock %}
 {% block content %}
 <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
-    <!-- Filter & Search Bar -->
+    <!-- filter & search bar -->
     <div class="p-4 bg-gray-50 border-b border-gray-200">
         <form method="get" class="flex flex-col md:flex-row gap-3">
-            <!-- Phone Search -->
+            <!-- phone search -->
             <div class="flex-grow">
                 <label for="phone" class="block text-xs font-medium text-gray-500 mb-1">Search by Phone</label>
                 <input 
@@ -19,26 +18,27 @@
                     placeholder="e.g., 017XXXXXXXX"
                 >
             </div>
-            <!-- Status Filter -->
+
+            <!-- status filter -->
             <div>
                 <label for="status" class="block text-xs font-medium text-gray-500 mb-1">Status</label>
                 <select 
                     id="status" 
                     name="status"
-                    class="w-full md:w-36 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                >
+                    class="w-full md:w-36 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
                     <option value="" {% if not status_filter %}selected{% endif %}>All</option>
                     <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
                     <option value="Completed" {% if status_filter == 'Completed' %}selected{% endif %}>Completed</option>
                 </select>
             </div>
+
             <div class="flex items-end">
                 <button 
                     type="submit"
-                    class="px-4 py-2 bg-primary hover:bg-opacity-90 text-white text-sm font-medium rounded-md transition"
-                >
+                    class="px-4 py-2 bg-primary hover:bg-opacity-90 text-white text-sm font-medium rounded-md transition">
                     Apply
                 </button>
+
                 <a href="/transaction" class="ml-2 px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200">
                     Reset
                 </a>
@@ -46,7 +46,7 @@
         </form>
     </div>
 
-    <!-- Summary -->
+    <!-- summary -->
     <div class="px-6 py-3 bg-gray-50 text-sm text-gray-600 flex justify-between items-center">
         <span>
             {% if payments %}
@@ -55,12 +55,13 @@
                 No payments found.
             {% endif %}
         </span>
+
         <span class="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
             Sorted by most recent
         </span>
     </div>
 
-    <!-- Payments Table -->
+    <!-- payments table -->
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
@@ -74,6 +75,7 @@
                     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due After</th>
                 </tr>
             </thead>
+
             <tbody class="bg-white divide-y divide-gray-200">
                 {% for p in payments %}
                 <tr class="hover:bg-gray-50">
@@ -96,6 +98,7 @@
                     </td>
                 </tr>
                 {% else %}
+
                 <tr>
                     <td colspan="7" class="px-6 py-12 text-center text-gray-500">
                         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -110,5 +113,4 @@
         </table>
     </div>
 </div>
-
 {% endblock %}
