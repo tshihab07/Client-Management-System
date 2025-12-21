@@ -1,10 +1,9 @@
-<!-- templates/transaction_client.html -->
 {% extends "base.html" %}
 {% block title %}{{ client.client_name }} — Payment History{% endblock %}
 {% block header %}Payment History: {{ client.client_name }}{% endblock %}
 {% block content %}
 <div class="max-w-4xl mx-auto">
-    <!-- Client Summary -->
+    <!-- client summary -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
         <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
             <div class="flex justify-between items-start">
@@ -12,10 +11,12 @@
                     <h2 class="text-xl font-bold text-gray-800">{{ client.client_name }}</h2>
                     <p class="text-gray-600">{{ client.project }} • {{ client.category or '—' }}</p>
                 </div>
+
                 <span class="{% if client.payment_status == 'Completed' %}bg-green-100 text-green-800{% else %}bg-amber-100 text-amber-800{% endif %} px-3 py-1 rounded-full text-sm font-medium">
                     {{ client.payment_status }}
                 </span>
             </div>
+
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3 text-sm">
                 <div><span class="text-gray-500">Phone:</span> {{ client.phone or '—' }}</div>
                 <div><span class="text-gray-500">Total:</span> ৳{{ "%.2f"|format(client.amount) }}</div>
@@ -23,6 +24,7 @@
                 <div><span class="text-gray-500">Due:</span> ৳{{ "%.2f"|format(client.due) }}</div>
             </div>
         </div>
+
         <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-3">Payment Timeline ({{ payment_history|length }})</h3>
             {% if payment_history %}
@@ -33,6 +35,7 @@
                         <span class="font-medium">৳{{ "%.2f"|format(tx.amount) }}</span>
                         <span class="text-xs text-gray-500">{{ tx.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
                     </div>
+
                     {% if tx.notes and tx.notes != '—' %}
                     <p class="text-sm text-gray-600 mt-1">📝 {{ tx.notes }}</p>
                     {% endif %}
@@ -42,6 +45,7 @@
                 </div>
                 {% endfor %}
             </div>
+
             {% else %}
             <div class="text-center py-8 text-gray-500">
                 <svg class="mx-auto h-10 w-10 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,9 +58,9 @@
     </div>
 
     <div class="flex gap-3">
-        <a href="/transaction" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">← Back to Global History</a>
+        <a href="/transaction" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">View All Payment History</a>
         {% if client.payment_status == "Pending" %}
-        <a href="/transaction?client_id={{ client.id }}" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90">➕ Record New Payment</a>
+        <a href="/transaction?client_id={{ client.id }}" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90">➕ Add New Payment</a>
         {% endif %}
     </div>
 </div>
