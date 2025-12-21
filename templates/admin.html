@@ -5,7 +5,7 @@
 {% block header %}Dashboard{% endblock %}
 
 {% block content %}
-<!-- Summary Cards -->
+<!-- summary cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     <div class="bg-[#B8C4A9] rounded-xl p-5 shadow-sm card-hover">
         <div class="flex justify-between items-start">
@@ -56,7 +56,7 @@
     </div>
 </div>
 
-<!-- Client Table -->
+<!-- client table -->
 <div class="bg-white rounded-xl shadow-sm overflow-hidden">
     <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
         <h3 class="text-lg font-semibold text-gray-800">Recent Clients</h3>
@@ -121,4 +121,40 @@
     </div>
     {% endif %}
 </div>
+
+<!-- pagination for more clients -->
+{% if total_pages > 1 %}
+<div class="px-6 py-4 flex justify-center bg-gray-50">
+    <nav class="inline-flex rounded-md shadow-sm" aria-label="Pagination">
+
+        {% if page > 1 %}
+        <a href="?page={{ page - 1 }}{{ '&search=' ~ request.query_params.get('search') if request.query_params.get('search') }}{{ '&payment_status=' ~ request.query_params.get('payment_status') if request.query_params.get('payment_status') }}"
+           class="px-3 py-2 border text-sm bg-white hover:bg-gray-100">
+            Previous
+        </a>
+        {% endif %}
+
+        {% for p in range(1, total_pages + 1) %}
+        <a href="?page={{ p }}{{ '&search=' ~ request.query_params.get('search') if request.query_params.get('search') }}{{ '&payment_status=' ~ request.query_params.get('payment_status') if request.query_params.get('payment_status') }}"
+           class="px-3 py-2 border text-sm
+           {% if p == page %}
+                bg-primary text-white
+           {% else %}
+                bg-white hover:bg-gray-100
+           {% endif %}">
+            {{ p }}
+        </a>
+        {% endfor %}
+
+        {% if page < total_pages %}
+        <a href="?page={{ page + 1 }}{{ '&search=' ~ request.query_params.get('search') if request.query_params.get('search') }}{{ '&payment_status=' ~ request.query_params.get('payment_status') if request.query_params.get('payment_status') }}"
+           class="px-3 py-2 border text-sm bg-white hover:bg-gray-100">
+            Next
+        </a>
+        {% endif %}
+
+    </nav>
+</div>
+{% endif %}
+
 {% endblock %}
