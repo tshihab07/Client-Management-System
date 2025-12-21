@@ -8,8 +8,9 @@
 </div>
 {% endif %}
 
-<!-- search and filters -->
 <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+
+    <!-- search and filters -->
     <div class="p-4 bg-gray-50 border-b border-gray-200">
         <form method="get" class="flex flex-col md:flex-row gap-3">
             <div class="flex-grow">
@@ -40,7 +41,7 @@
                     type="submit"
                     class="px-4 py-2 bg-primary hover:bg-opacity-90 text-white text-sm font-medium rounded-md transition"
                 >
-                    🔍 Filter
+                    Filter
                 </button>
             </div>
         </form>
@@ -53,6 +54,7 @@
             No clients found.
         {% endif %}
     </div>
+
     <!-- client table -->
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
@@ -65,24 +67,32 @@
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 {% for client in clients %}
                 <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td class="px-5 py-4 whitespace-normal break-words">
                         <a href="/client/{{ client.id }}" class="font-medium text-primary hover:underline">
                             {{ client.client_name }}
                         </a>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">
                         {{ client.phone or '—' }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ client.project }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ client.category or '—' }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.amount) }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.paid) }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.due) }}</td>
+                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-500">{{ client.project }}</td>
+                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-500">{{ client.category or '—' }}</td>
+                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.amount) }}</td>
+                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.paid) }}</td>
+                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.due) }}</td>
+                    <td class="px-5 py-4 whitespace-nowrap">
+                        {% if client.payment_status == "Completed" %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
+                        {% else %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% else %}
                 <tr>
@@ -100,10 +110,38 @@
     </div>
 </div>
 
-<!-- action links -->
-<div class="mt-4 flex flex-wrap gap-3">
-    <a href="/pending" class="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md hover:bg-yellow-100">⚠️ Pending Only</a>
-    <a href="/completed" class="px-4 py-2 bg-green-50 text-green-700 rounded-md hover:bg-green-100">✅ Completed Only</a>
-    <a href="/add" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90">➕ Add New Client</a>
+{% if total_pages > 1 %}
+<div class="px-6 py-4 flex justify-center bg-gray-50">
+    <nav class="inline-flex rounded-md shadow-sm" aria-label="Pagination">
+
+        {% if page > 1 %}
+        <a href="?page={{ page - 1 }}{{ '&search=' ~ request.query_params.get('search') if request.query_params.get('search') }}{{ '&payment_status=' ~ request.query_params.get('payment_status') if request.query_params.get('payment_status') }}"
+           class="px-3 py-2 border text-sm bg-white hover:bg-gray-100">
+            Previous
+        </a>
+        {% endif %}
+
+        {% for p in range(1, total_pages + 1) %}
+        <a href="?page={{ p }}{{ '&search=' ~ request.query_params.get('search') if request.query_params.get('search') }}{{ '&payment_status=' ~ request.query_params.get('payment_status') if request.query_params.get('payment_status') }}"
+           class="px-3 py-2 border text-sm
+           {% if p == page %}
+                bg-primary text-white
+           {% else %}
+                bg-white hover:bg-gray-100
+           {% endif %}">
+            {{ p }}
+        </a>
+        {% endfor %}
+
+        {% if page < total_pages %}
+        <a href="?page={{ page + 1 }}{{ '&search=' ~ request.query_params.get('search') if request.query_params.get('search') }}{{ '&payment_status=' ~ request.query_params.get('payment_status') if request.query_params.get('payment_status') }}"
+           class="px-3 py-2 border text-sm bg-white hover:bg-gray-100">
+            Next
+        </a>
+        {% endif %}
+
+    </nav>
 </div>
+{% endif %}
+
 {% endblock %}
