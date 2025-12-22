@@ -1,6 +1,6 @@
 import os
 from fastapi import FastAPI, Request, Depends, HTTPException, status, Query
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
@@ -9,6 +9,10 @@ from bson import ObjectId
 from bson.errors import InvalidId
 from jose import jwt, JWTError
 from math import ceil
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from io import BytesIO
+from datetime import datetime
 
 from database import connect_to_mongo, close_mongo_connection, get_collection
 from models import ClientInDB
@@ -392,5 +396,84 @@ async def transaction_client_page(
             "user": user,
             "client": client_data,
             "payment_history": history_enriched
+        }
+    )
+
+
+# Invoice generation route
+@app.get("/clients/{client_id}/invoice")
+async def download_invoice(
+    client_id: str,
+    user: dict = Depends(get_current_user_from_cookie),
+    collection = Depends(get_clientms_collection),
+):
+    try:
+        obj_id = ObjectId(client_id)
+        client = collection.find_one({"_id": obj_id})
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid client ID")
+
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    # Normalize ID
+    client["_id"] = str(client["_id"])
+
+    # Use EXISTING fields only
+    client_name = client.get("client_name", "Unknown Client")
+    project = client.get("project", "—")
+    phone = client.get("phone", "—")
+    amount = client.get("amount", 0.0)
+    paid = client.get("paid", 0.0)
+    due = client.get("due", 0.0)
+
+    # Generate filename
+    date_str = datetime.now().strftime("%Y%m%d")
+    filename = f"Invoice_{client_name.replace(' ', '_')}_{date_str}.pdf"
+
+    # Create PDF
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    y = height - 50
+
+    pdf.setFont("Helvetica-Bold", 18)
+    pdf.drawString(50, y, "INVOICE")
+    y -= 40
+
+    pdf.setFont("Helvetica", 11)
+    pdf.drawString(50, y, f"Client Name: {client_name}")
+    y -= 20
+    pdf.drawString(50, y, f"Phone: {phone}")
+    y -= 20
+    pdf.drawString(50, y, f"Project: {project}")
+    y -= 30
+
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(50, y, "Payment Summary")
+    y -= 20
+
+    pdf.setFont("Helvetica", 11)
+    pdf.drawString(50, y, f"Total Amount: ৳{amount:.2f}")
+    y -= 18
+    pdf.drawString(50, y, f"Paid Amount: ৳{paid:.2f}")
+    y -= 18
+    pdf.drawString(50, y, f"Due Amount: ৳{due:.2f}")
+    y -= 40
+
+    pdf.setFont("Helvetica-Oblique", 9)
+    pdf.drawString(50, y, f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+
+    pdf.showPage()
+    pdf.save()
+
+    buffer.seek(0)
+
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"'
         }
     )
