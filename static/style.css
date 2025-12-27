@@ -1,3 +1,7 @@
+body {
+    font-family: "Roboto", sans-serif;
+}
+
 .card-hover:hover {
     transform: translateY(-3px);
     box-shadow: 0 10px 25px -5px rgba(217, 125, 85, 0.2);
@@ -5,57 +9,46 @@
 }
 
 .sidebar-item.active {
-    background-color: #D97D55 !important;
-    color: white !important;
+    background-color: #D97D55;
+    color: white;
 }
 
 .sidebar-item.active svg {
-    color: white !important;
+    color: white;
 }
 
-/* =============== PRINT PDF STYLES =============== */
+
+/* print pdf */
 @media print {
-    /* Hide sidebar, logout button, and any print-hide elements */
-    aside,
-    .print-hide,
-    header form,
-    nav {
+
+    aside {
         display: none !important;
+        position: static !important;
+        width: 0 !important;
+        height: 0 !important;
     }
 
     main {
         margin-left: 0 !important;
-        padding: 1rem 0.5rem !important;
-        max-width: 100% !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    header,
+    nav,
+    .print-hide,
+    button {
+        display: none !important;
     }
 
     body {
+        display: block !important;
         background: white !important;
         color: black !important;
         font-size: 11pt !important;
     }
 
-    .card-hover,
-    .shadow-sm,
-    .hover\:bg-opacity-90,
-    .hover\:bg-gray-200 {
+    * {
         box-shadow: none !important;
-        transform: none !important;
-        transition: none !important;
-    }
-
-    .bg-white {
-        background: white !important;
-    }
-
-    .border,
-    .border-b,
-    .rounded-xl {
-        border-color: #999 !important;
-        background: white !important;
-    }
-
-    .max-w-4xl {
-        break-inside: avoid;
     }
 }
