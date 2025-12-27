@@ -27,20 +27,11 @@
 
     <link rel="stylesheet" href="/static/style.css">
     
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .sidebar-item.active { background-color: #D97D55; color: white; }
-        .card-hover:hover { transform: translateY(-2px); transition: all 0.2s ease; }
-        @media print {
-        aside, .sidebar { display: none !important; }
-        main { margin-left: 0 !important; }
-        }
-    </style>
     {% block head %}{% endblock %}
 </head>
 <body class="bg-background min-h-screen flex">
     <!-- sidebar -->
-    <aside class="w-64 bg-sidebar text-white h-screen fixed">
+    <aside class="w-60 bg-sidebar text-white h-screen fixed">
         <div class="p-5 border-b border-gray-700">
             <h1 class="text-xl font-bold">ClientMS</h1>
             <p class="text-sm opacity-75">Admin Panel</p>
