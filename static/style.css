@@ -12,3 +12,50 @@
 .sidebar-item.active svg {
     color: white !important;
 }
+
+/* =============== PRINT PDF STYLES =============== */
+@media print {
+    /* Hide sidebar, logout button, and any print-hide elements */
+    aside,
+    .print-hide,
+    header form,
+    nav {
+        display: none !important;
+    }
+
+    main {
+        margin-left: 0 !important;
+        padding: 1rem 0.5rem !important;
+        max-width: 100% !important;
+    }
+
+    body {
+        background: white !important;
+        color: black !important;
+        font-size: 11pt !important;
+    }
+
+    .card-hover,
+    .shadow-sm,
+    .hover\:bg-opacity-90,
+    .hover\:bg-gray-200 {
+        box-shadow: none !important;
+        transform: none !important;
+        transition: none !important;
+    }
+
+    .bg-white {
+        background: white !important;
+    }
+
+    .border,
+    .border-b,
+    .rounded-xl {
+        border-color: #999 !important;
+        background: white !important;
+    }
+
+    .max-w-4xl {
+        break-inside: avoid;
+    }
+}
