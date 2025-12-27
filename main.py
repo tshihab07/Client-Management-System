@@ -1,6 +1,6 @@
 import os
 from fastapi import FastAPI, Request, Depends, HTTPException, status, Query
-from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
@@ -9,10 +9,6 @@ from bson import ObjectId
 from bson.errors import InvalidId
 from jose import jwt, JWTError
 from math import ceil
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-from io import BytesIO
-from datetime import datetime
 
 from database import connect_to_mongo, close_mongo_connection, get_collection
 from models import ClientInDB
@@ -43,7 +39,7 @@ templates = Jinja2Templates(directory="templates")
 # set number of items per page
 PAGE_SIZE = 20
 
-# Global Auth Middleware (CRITICAL)
+# global auth middleware
 PUBLIC_PATHS = (
     "/login",
     "/auth/login",
@@ -69,6 +65,7 @@ async def auth_middleware(request: Request, call_next):
 
     try:
         jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    
     except JWTError:
         return RedirectResponse("/login", status_code=status.HTTP_303_SEE_OTHER)
 
@@ -282,7 +279,7 @@ async def transaction_global_page(
     user: dict = Depends(get_current_user_from_cookie),
     collection = Depends(get_clientms_collection)
 ):
-    # Build client query
+    # build client query
     client_query = {}
     if status_filter in ["Completed", "Pending"]:
         client_query["payment_status"] = status_filter
@@ -290,14 +287,14 @@ async def transaction_global_page(
     if phone_search:
         client_query["phone"] = {"$regex": phone_search.strip(), "$options": "i"}
 
-    # Fetch all matching clients
+    # fetch all matching clients
     cursor = collection.find(client_query)
     clients = []
     for doc in cursor:
         doc["_id"] = str(doc["_id"])
         clients.append(ClientInDB(**doc))
 
-    # In the global transaction route — replace the payment flattening loop with:
+    # replace the payment flattening loop in the global transaction
     all_payments = []
     for client in clients:
         history = client.payment_history or []
@@ -306,7 +303,7 @@ async def transaction_global_page(
         if not isinstance(history, list):
             history = []
         
-        # Enrich payments
+        # enrich payments
         for i, tx in enumerate(history):
             paid_so_far = tx.amount
             remaining_after = max(0.0, round(client.amount - paid_so_far, 2))
@@ -324,7 +321,7 @@ async def transaction_global_page(
                 "client_status": client.payment_status
         })
 
-    # Sort by timestamp (most recent first)
+    # sort by timestamp (most recent first)
     all_payments.sort(key=lambda x: x["timestamp"], reverse=True)
 
     return templates.TemplateResponse(
@@ -346,32 +343,33 @@ async def transaction_client_page(
     user: dict = Depends(get_current_user_from_cookie),
     collection = Depends(get_clientms_collection)
 ):
-    # Try to fetch client by ObjectId first
+    # fetch client by ObjectId first
     client = None
     try:
         obj_id = ObjectId(client_id)
         client = collection.find_one({"_id": obj_id})
+    
     except InvalidId:
-        # client_id is not a valid ObjectId → ignore
+        # client_id is not a valid then ignore ObjectId 
         pass
 
-    # Fallback: try string-based _id (for legacy data)
+    # fallback: try string-based _id (for legacy data)
     if not client:
         client = collection.find_one({"_id": client_id})
 
-    # If still not found → real 404
+    # if still not found → real 404
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
 
-    # Normalize and load into Pydantic model
+    # eormalize and load into Pydantic model
     client["_id"] = str(client["_id"])
     client_data = ClientInDB(**client)
 
-    # Enrich payment history with cumulative remaining balance
+    # enrich payment history with cumulative remaining balance
     history_enriched = []
     paid_total = 0.0
 
-    # Ensure chronological order
+    # ensure chronological order
     payment_history = sorted(
         client_data.payment_history,
         key=lambda x: x.timestamp
@@ -388,7 +386,7 @@ async def transaction_client_page(
             "remaining_after": remaining
         })
 
-    # Render template
+    # render template
     return templates.TemplateResponse(
         "transaction_client.html",
         {
