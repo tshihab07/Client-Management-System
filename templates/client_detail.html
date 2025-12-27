@@ -80,13 +80,14 @@
         </div>
     </div>
 
-    <div class="mt-4 flex gap-3">
-        <a href="/transaction/client/{{ client.id }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">Payment History</a>
+    <div class="mt-4 flex gap-3 print-hide">
+        <a href="/transaction/client/{{ client.id }}" class="px-4 py-2 bg-violet-400 text-white rounded-md hover:bg-opacity-90">Payment History</a>
         {% if client.payment_status == 'Pending' %}
         <a href="/payment?client_id={{ client.id }}" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90">
             Add Payment
         </a>
         {% endif %}
+        <button onclick="window.print()" class="px-4 py-2 bg-indigo-400 text-white rounded-md hover:bg-opacity-90">Download Receipt</button>
     </div>
 </div>
 {% endblock %}
