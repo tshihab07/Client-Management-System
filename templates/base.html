@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}ClientMS Admin{% endblock %}</title>
-    <!-- Inter Font -->
+    <!-- inter font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Tailwind CSS (via CDN for simplicity — replace with build step in prod) -->
+    <!-- tailwind CSS (via CDN for simplicity — replace with build step in prod) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -24,16 +24,22 @@
             }
         }
     </script>
+
     <link rel="stylesheet" href="/static/style.css">
+    
     <style>
         body { font-family: 'Inter', sans-serif; }
         .sidebar-item.active { background-color: #D97D55; color: white; }
         .card-hover:hover { transform: translateY(-2px); transition: all 0.2s ease; }
+        @media print {
+        aside, .sidebar { display: none !important; }
+        main { margin-left: 0 !important; }
+        }
     </style>
     {% block head %}{% endblock %}
 </head>
 <body class="bg-background min-h-screen flex">
-    <!-- Sidebar -->
+    <!-- sidebar -->
     <aside class="w-64 bg-sidebar text-white h-screen fixed">
         <div class="p-5 border-b border-gray-700">
             <h1 class="text-xl font-bold">ClientMS</h1>
@@ -67,7 +73,7 @@
         </nav>
     </aside>
 
-    <!-- Main Content -->
+    <!-- main content -->
     <main class="ml-64 p-6 w-full">
         <header class="mb-6">
             <div class="flex justify-between items-center">
