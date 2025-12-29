@@ -73,20 +73,20 @@
             <tbody class="bg-white divide-y divide-gray-200">
                 {% for client in clients %}
                 <tr class="hover:bg-gray-50">
-                    <td class="px-5 py-4 whitespace-normal break-words">
+                    <td class="px-4 py-4 whitespace-nowrap break-words">
                         <a href="/client/{{ client.id }}" class="font-medium text-primary hover:underline">
                             {{ client.client_name }}
                         </a>
                     </td>
-                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
                         {{ client.phone or '—' }}
                     </td>
-                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-500">{{ client.project }}</td>
-                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-500">{{ client.category or '—' }}</td>
-                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.amount) }}</td>
-                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.paid) }}</td>
-                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.due) }}</td>
-                    <td class="px-5 py-4 whitespace-nowrap">
+                    <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ client.project }}</td>
+                    <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ client.category or '—' }}</td>
+                    <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.amount) }}</td>
+                    <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.paid) }}</td>
+                    <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.due) }}</td>
+                    <td class="px-3 py-4 whitespace-nowrap">
                         {% if client.payment_status == "Completed" %}
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
                         {% else %}
