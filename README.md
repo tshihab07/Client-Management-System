@@ -1,5 +1,30 @@
 # Client Management System
 
+## Introduction
+
+### Executive Summary
+
+The Client Management System (CMS) is a web-based business automation solution designed to manage client profiles, transactions, payments, and invoices. It offers a secure authentication mechanism and a real-time dashboard to streamline operational workflows.
+
+### Purpose
+
+The system centralizes client and financial data while reducing manual workload, increasing transparency, and improving business efficiency.
+
+### Target Audience
+- Small to medium businesses
+- Agencies
+- Freelancers
+- Service-based companies
+
+### Scope
+- Core workflow includes:
+- Client CRUD
+- Transaction entry
+- Payment logs
+- Invoice generation
+- Search & filtering
+- Analytics dashboard
+
 ---
 
 ## File Structure
