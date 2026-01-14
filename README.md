@@ -42,6 +42,15 @@ The system centralizes client and financial data while reducing manual workload,
 - Database
     - MongoDB Atlas (Cloud managed NoSQL)
 
+---
+
+## SYSTEM FEATURES OVERVIEW
+- Client Management: Create, read, update, delete client profiles.
+- Transaction Management: Add financial transactions with date, amount, and purpose.
+- Payment History: Track payment logs per client.
+- Invoice Generation: Generate printable invoices dynamically using HTML templates.
+- Authentication: Login system with hashed passwords (Passlib).
+
 ## File Structure
 
 ```bash
