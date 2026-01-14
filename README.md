@@ -27,6 +27,21 @@ The system centralizes client and financial data while reducing manual workload,
 
 ---
 
+## TECHNOLOGY STACK
+
+- Backend
+    - FastAPI (Python)
+    - Motor (async MongoDB driver)
+    - Jinja2 (templating)
+
+- Frontend
+    - HTML
+    - TailwindCSS
+    - Vanilla JavaScript
+
+- Database
+    - MongoDB Atlas (Cloud managed NoSQL)
+
 ## File Structure
 
 ```bash
