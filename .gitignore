@@ -1,7 +1,5 @@
-# Environment variables
 .env
 
-# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -10,14 +8,11 @@ venv/
 .venv/
 pyvenv.cfg
 
-# Logs
 *.log
 
-# OS
 .DS_Store
 Thumbs.db
 
-# IDE
 .vscode/
 .idea/
 *.swp
