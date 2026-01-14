@@ -69,5 +69,5 @@ ClientManagement/
     └── style.css              # Tailwind via CDN + custom overrides (fonts, colors)
 ```
 
-Author:: Tushar Shihab <br>
+Author: Tushar Shihab <br>
 Machine Learning Engineer
