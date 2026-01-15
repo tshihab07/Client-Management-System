@@ -73,6 +73,30 @@ flowchart TD
 - Repository Layer: MongoDB operations
 - Template Layer: HTML rendering
 
+---
+
+## PROJECT FLOWCHARTS
+
+### Login Flow
+
+```mermaid
+flowchart TD
+    A[User enters credentials] --> B[FastAPI validates input]
+    B --> C{Valid?}
+    C -->|Yes| D[Create session token]
+    D --> E[Redirect to Dashboard]
+    C -->|No| F[Return error message]
+```
+
+### Client Creation Flow
+
+```mermaid
+flowchart TD
+    A[User submits client form] --> B[Validate data]
+    B --> C[Insert into MongoDB]
+    C --> D[Return success and redirect]
+```
+
 ## File Structure
 
 ```bash
