@@ -1,6 +1,6 @@
 # Client Management System
 
-## Introduction
+## INTRODUCTION
 
 ### Executive Summary
 
@@ -50,6 +50,9 @@ The system centralizes client and financial data while reducing manual workload,
 - Payment History: Track payment logs per client.
 - Invoice Generation: Generate printable invoices dynamically using HTML templates.
 - Authentication: Login system with hashed passwords (Passlib).
+- Search + Filters: Search by name and phone. Filtered by payment status
+
+---
 
 ## File Structure
 
