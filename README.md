@@ -119,6 +119,22 @@ flowchart TD
     B --> C[Client Collection]
     C --> B --> A --> User
 ```
+---
+
+## DATABASE DESIGN
+1. users – authentication
+2. clients – client details
+3. transactions – financial logs
+
+---
+
+## SECURITY MEASURES
+- Password hashing
+- Server-side validation
+- MongoDB Atlas IP-whitelisting
+- Environment variables for credentials
+
+---
 
 ## File Structure
 
