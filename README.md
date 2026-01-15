@@ -97,6 +97,29 @@ flowchart TD
     C --> D[Return success and redirect]
 ```
 
+---
+
+## DATA FLOW DIAGRAMS
+
+### DFD Level 0
+
+```mermaid
+flowchart TD
+    User --> CMS[Client Management System]
+    CMS --> Mongo[MongoDB Atlas]
+    Mongo --> CMS
+```
+
+### DFD – Client Module
+
+```mermaid
+flowchart TD
+    User --> A[Client Router]
+    A --> B[Client Service]
+    B --> C[Client Collection]
+    C --> B --> A --> User
+```
+
 ## File Structure
 
 ```bash
