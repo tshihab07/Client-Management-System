@@ -54,6 +54,25 @@ The system centralizes client and financial data while reducing manual workload,
 
 ---
 
+## SYSTEM ARCHITECTURE
+
+### Architecture Diagram
+
+```mermaid
+flowchart TD
+    A[Browser] --> B[FastAPI Router Layer]
+    B --> C[Service Layer]
+    C --> D[MongoDB Atlas]
+    B --> E[Jinja2 Templates]
+    E --> A
+```
+
+### Layer Description
+- Router Layer: Handles HTTP requests
+- Service Layer: Business logic
+- Repository Layer: MongoDB operations
+- Template Layer: HTML rendering
+
 ## File Structure
 
 ```bash
