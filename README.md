@@ -136,6 +136,15 @@ flowchart TD
 
 ---
 
+## FUTURE ENHANCEMENTS
+- Role-based access control
+- Export data to PDF/Excel
+- Advanced analytics dashboard
+- Mobile-responsive redesign
+- Email notifications
+- API endpoints for third-party integration
+- PWA support
+
 ## File Structure
 
 ```bash
