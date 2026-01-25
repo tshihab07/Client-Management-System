@@ -19,7 +19,7 @@ if not SECRET_KEY:
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# OAuth2 scheme (for API auth — we'll use cookies for web)
+# OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 ADMIN_USER = UserInDB(
