@@ -45,7 +45,6 @@ PUBLIC_PATHS = (
     "/auth/login",
     "/auth/token",
     "/static",
-    "/favicon.ico"
 )
 
 @app.middleware("http")
