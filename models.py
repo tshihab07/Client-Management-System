@@ -47,7 +47,6 @@ class ClientInDB(ClientBase):
 
 class ClientUpdate(BaseModel):
     paid: Optional[float] = None
-    # `due` and `payment_status` are auto-calculated
 
 
 # Transaction Model
