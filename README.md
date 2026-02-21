@@ -1,176 +1,166 @@
-# Client Management System
+# Client Management System (CMS)
 
-## INTRODUCTION
+## Introduction
 
 ### Executive Summary
+The Client Management System (CMS) is a robust, web-based business automation solution designed to streamline the management of client profiles, project transactions, and financial records. Built with FastAPI and MongoDB, it offers a secure, real-time platform for businesses to track their operations and financial health.
 
-The Client Management System (CMS) is a web-based business automation solution designed to manage client profiles, transactions, payments, and invoices. It offers a secure authentication mechanism and a real-time dashboard to streamline operational workflows.
-
-### Purpose
-
-The system centralizes client and financial data while reducing manual workload, increasing transparency, and improving business efficiency.
-
-### Target Audience
-- Small to medium businesses
-- Agencies
-- Freelancers
-- Service-based companies
-
-### Scope
-- Core workflow includes:
-- Client CRUD
-- Transaction entry
-- Payment logs
-- Invoice generation
-- Search & filtering
-- Analytics dashboard
+### Key Features
+- **Client Management**: Full CRUD operations for client profiles, including contact details and project info.
+- **Transaction Tracking**: Detailed logging of payments, automated calculation of outstanding balances (due), and payment history.
+- **Real-time Dashboard**: Comprehensive overview of total clients, total project value, total paid, and total due.
+- **Secure Authentication**: JWT-based authentication with secure cookie storage and password hashing.
+- **Automated Invoicing**: Dynamic generation of client-specific transaction records and status.
+- **Advanced Filtering**: Search and filter clients by name, phone, or payment status (Pending/Completed).
 
 ---
 
-## TECHNOLOGY STACK
+## Technology Stack
 
-- Backend
-    - FastAPI (Python)
-    - Motor (async MongoDB driver)
-    - Jinja2 (templating)
-
-- Frontend
-    - HTML
-    - TailwindCSS
-    - Vanilla JavaScript
-
-- Database
-    - MongoDB Atlas (Cloud managed NoSQL)
+- **Backend**: FastAPI (Python)
+- **Database**: MongoDB Atlas (NoSQL)
+- **Database Driver**: Pymongo (Synchronous with srv support)
+- **Authentication**: JWT (JSON Web Tokens), Passlib (Bcrypt)
+- **Templating**: Jinja2
+- **Frontend**: HTML5, TailwindCSS (via CDN), Vanilla JavaScript
+- **Environment Management**: Python-dotenv
 
 ---
 
-## SYSTEM FEATURES OVERVIEW
-- Client Management: Create, read, update, delete client profiles.
-- Transaction Management: Add financial transactions with date, amount, and purpose.
-- Payment History: Track payment logs per client.
-- Invoice Generation: Generate printable invoices dynamically using HTML templates.
-- Authentication: Login system with hashed passwords (Passlib).
-- Search + Filters: Search by name and phone. Filtered by payment status
+## Project Structure
 
----
-
-## SYSTEM ARCHITECTURE
-
-### Architecture Diagram
-
-```mermaid
-flowchart TD
-    A[Browser] --> B[FastAPI Router Layer]
-    B --> C[Service Layer]
-    C --> D[MongoDB Atlas]
-    B --> E[Jinja2 Templates]
-    E --> A
-```
-
-### Layer Description
-- Router Layer: Handles HTTP requests
-- Service Layer: Business logic
-- Repository Layer: MongoDB operations
-- Template Layer: HTML rendering
-
----
-
-## PROJECT FLOWCHARTS
-
-### Login Flow
-
-```mermaid
-flowchart TD
-    A[User enters credentials] --> B[FastAPI validates input]
-    B --> C{Valid?}
-    C -->|Yes| D[Create session token]
-    D --> E[Redirect to Dashboard]
-    C -->|No| F[Return error message]
-```
-
-### Client Creation Flow
-
-```mermaid
-flowchart TD
-    A[User submits client form] --> B[Validate data]
-    B --> C[Insert into MongoDB]
-    C --> D[Return success and redirect]
+```text
+ClientManagement/
+├── routers/                # API route handlers
+│   ├── auth.py             # Login/Logout and token management
+│   ├── clients.py          # Client CRUD and summary statistics
+│   └── transactions.py     # Payment recording and history
+├── static/                 # Static assets (CSS, images)
+├── templates/              # Jinja2 HTML templates
+├── database.py             # MongoDB connection and session management
+├── main.py                 # Application entry point and middleware
+├── models.py               # Pydantic data models
+├── security.py             # Security utilities (hashing, JWT)
+├── requirements.txt        # Project dependencies
+├── .env                    # Environment variables (not tracked in Git)
+└── README.md               # Project documentation
 ```
 
 ---
 
-## DATA FLOW DIAGRAMS
+## Installation & Setup
 
-### DFD Level 0
+### Prerequisites
+- Python 3.9+
+- MongoDB Atlas account (or local MongoDB instance)
 
-```mermaid
-flowchart TD
-    User --> CMS[Client Management System]
-    CMS --> Mongo[MongoDB Atlas]
-    Mongo --> CMS
-```
+### Step-by-Step Setup
 
-### DFD – Client Module
+1. **Clone the Repository**
+   ```bash
+   git clone <repository-url>
+   cd ClientManagement
+   ```
 
-```mermaid
-flowchart TD
-    User --> A[Client Router]
-    A --> B[Client Service]
-    B --> C[Client Collection]
-    C --> B --> A --> User
-```
+2. **Create a Virtual Environment**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. **Install Dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Configure Environment Variables**
+   Create a `.env` file in the root directory and add the following:
+   ```env
+   MONGODB_URI=your_mongodb_connection_string
+   SECRET_KEY=your_super_secret_key
+   ALGORITHM=HS256
+   ACCESS_TOKEN_EXPIRE_MINUTES=30
+   ```
+   *Note: The `MONGODB_URI` should include your credentials and point to your cluster.*
+
 ---
 
-## DATABASE DESIGN
-1. users – authentication
-2. clients – client details
-3. transactions – financial logs
+## Running the Application
 
----
-
-## SECURITY MEASURES
-- Password hashing
-- Server-side validation
-- MongoDB Atlas IP-whitelisting
-- Environment variables for credentials
-
----
-
-## FUTURE ENHANCEMENTS
-- Role-based access control
-- Export data to PDF/Excel
-- Advanced analytics dashboard
-- Mobile-responsive redesign
-- Email notifications
-- API endpoints for third-party integration
-- PWA support
-
-## File Structure
+Start the development server using Uvicorn:
 
 ```bash
-ClientManagement/
-├── .gitignore
-├── requirements.txt
-├── main.py                    # FastAPI app & auth setup
-├── database.py                # MongoDB (pymongo) connection
-├── models.py                  # Pydantic models (Client, User, Transaction)
-├── security.py                # Password hashing, JWT, login logic
-├── routers/
-│   ├── auth.py                # login/logout
-│   ├── clients.py             # CRUD: /add, /view, /pending, /completed
-│   └── transactions.py        # /transaction (update payment)
-├── templates/
-│   ├── base.html              # Layout with sidebar & your color palette
-│   ├── login.html
-│   ├── admin.html             # Dashboard (matches your image)
-│   ├── add_client.html
-│   ├── view_clients.html
-│   ├── pending.html
-│   ├── completed.html
-│   └── transaction.html
-└── static/
-    └── style.css              # Tailwind via CDN + custom overrides (fonts, colors)
+uvicorn main:app --reload
 ```
 
-Author: Tushar Shihab <br>
+The application will be available at `http://127.0.0.1:8000`.
+- **Admin Dashboard**: `http://127.0.0.1:8000/admin`
+- **Interactive API Docs**: `http://127.0.0.1:8000/docs`
+
+---
+
+## Data Flow & Architecture
+
+### System Architecture
+
+```mermaid
+flowchart TD
+    User[Browser/Client] <--> API[FastAPI Router Layer]
+    API <--> Logic[Business Logic / Pydantic Models]
+    Logic <--> DB[(MongoDB Atlas)]
+    API --> UI[Jinja2 Templates]
+    UI --> User
+```
+
+### Data Flow Diagram (DFD)
+
+#### 1. Authentication Flow
+1. User submits credentials via the Login Page.
+2. `auth.py` verifies the username and compares hashed passwords using `security.py`.
+3. Upon success, a JWT token is generated and stored in a secure `access_token` cookie.
+4. Middleware in `main.py` validates this cookie for all protected routes.
+
+#### 2. Client Management Flow
+1. **Creation**: User submits client data -> `api/clients` (POST) -> `models.py` validates -> `database.py` saves to MongoDB.
+2. **Retrieval**: `admin` or `view` routes call `get_clients` -> Query MongoDB -> Convert to Pydantic models -> Render via Jinja2.
+
+#### 3. Transaction/Payment Flow
+1. User initiates payment for a client.
+2. `transactions.py` (POST) receives the amount.
+3. System fetches current client data, increments `paid`, decrements `due`, and updates `payment_status`.
+4. A new entry is appended to the `payment_history` array within the client document.
+5. Redirects user to the updated view.
+
+---
+
+## Database Design
+
+The system uses a single database `clientms_db` with the following primary collections:
+
+1. **users**: Stores administrative credentials (username, hashed_password).
+2. **ClientMS**: (Collection Name) Stores client documents including:
+   - Profile information (Name, Phone, Email, etc.)
+   - Project details (Project Name, Category)
+   - Financials (Total Amount, Paid, Due, Status)
+   - `payment_history`: An array of objects (amount, timestamp, notes).
+
+---
+
+## API Documentation
+
+FastAPI automatically generates interactive API documentation. Once the server is running, you can access:
+- **Swagger UI**: `/docs` - Explore and test API endpoints directly from the browser.
+- **ReDoc**: `/redoc` - Alternative clean, professional API documentation.
+
+---
+
+## Security Measures
+- **Password Hashing**: Uses `passlib` with `bcrypt` for secure storage.
+- **JWT Authentication**: Secure stateless authentication using JSON Web Tokens.
+- **HttpOnly Cookies**: Prevents XSS-based token theft by storing the JWT in an HttpOnly cookie.
+- **Input Validation**: Strict schema enforcement using Pydantic models.
+
+---
+
+Author: Tushar Shihab
 Machine Learning Engineer
