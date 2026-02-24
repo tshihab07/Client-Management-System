@@ -149,11 +149,7 @@ flowchart TD
 3. Upon success, a JWT token is generated and stored in a secure `access_token` cookie.
 4. Middleware in `main.py` validates this cookie for all protected routes.
 
-#### 2. Client Management Flow
-1. **Creation**: User submits client data -> `api/clients` (POST) -> `models.py` validates -> `database.py` saves to MongoDB.
-2. **Retrieval**: `admin` or `view` routes call `get_clients` -> Query MongoDB -> Convert to Pydantic models -> Render via Jinja2.
-
-#### 3. Transaction/Payment Flow
+#### 2. Transaction/Payment Flow
 1. User initiates payment for a client.
 2. `transactions.py` (POST) receives the amount.
 3. System fetches current client data, increments `paid`, decrements `due`, and updates `payment_status`.
