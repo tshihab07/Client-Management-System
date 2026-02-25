@@ -14,8 +14,10 @@
     - [Data Flow Diagram (DFD)](#data-flow-diagram-dfd)
     - [System Architecture](#system-architecture)
 - [Database Design](#database-design)
-- [API Documentation](#api-documentation)
 - [Security Measures](#security-measures)
+- [COntributing](#contributing)
+- [Contact](#contact)
+- [LICENSE](#license)
 
 ---
 
@@ -43,7 +45,6 @@ The **Client Management System (CMS)** is a robust, web-based business automatio
 - **Authentication**: JWT (JSON Web Tokens), Passlib (Bcrypt)
 - **Templating**: Jinja2
 - **Frontend**: HTML5, TailwindCSS (via CDN), Vanilla JavaScript
-- **Environment Management**: Python-dotenv
 
 ---
 
@@ -62,7 +63,6 @@ ClientManagement/
 ├── models.py               # Pydantic data models
 ├── security.py             # Security utilities (hashing, JWT)
 ├── requirements.txt        # Project dependencies
-├── .env                    # Environment variables (not tracked in Git)
 └── README.md               # Project documentation
 ```
 
@@ -70,10 +70,17 @@ ClientManagement/
 
 ## Dependencies
 ```bash
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+pymongo[srv]==4.7.0
+python-dotenv==1.0.1
+passlib[bcrypt]==1.7.4
+bcrypt==3.2.2
+python-jose[cryptography]==3.3.0
+jinja2==3.1.4
 dnspython==2.6.1
 gunicorn==23.0.0
 email-validator==2.3.0
-python-multipart>=0.0.9
 ```
 
 ---
@@ -88,7 +95,10 @@ python-multipart>=0.0.9
 
 1. **Clone the Repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/tshihab07/Client-Management-System.git
+   ```
+
+   ```bash
    cd ClientManagement
    ```
 
@@ -114,7 +124,6 @@ uvicorn main:app --reload --port 8000
 ```
 
 The application will be available at `http://127.0.0.1:8000`.
-- **Admin Dashboard**: `http://127.0.0.1:8000/admin`
 
 ---
 
@@ -145,13 +154,13 @@ flowchart TD
 
 #### 1. Authentication Flow
 1. User submits credentials via the Login Page.
-2. `auth.py` verifies the username and compares hashed passwords using `security.py`.
+2. Verify the username and compares hashed passwords
 3. Upon success, a JWT token is generated and stored in a secure `access_token` cookie.
-4. Middleware in `main.py` validates this cookie for all protected routes.
+4. Middleware validates this cookie for all protected routes.
 
 #### 2. Transaction/Payment Flow
 1. User initiates payment for a client.
-2. `transactions.py` (POST) receives the amount.
+2. receives the amount (POST).
 3. System fetches current client data, increments `paid`, decrements `due`, and updates `payment_status`.
 4. A new entry is appended to the `payment_history` array within the client document.
 5. Redirects user to the updated view.
@@ -162,11 +171,11 @@ flowchart TD
 
 The system uses a single database `clientms_db` with the following primary collections:
 
-1. **users**: Stores administrative credentials (username, hashed_password).
-2. **ClientMS**: (Collection Name) Stores client documents including:
-   - Profile information (Name, Phone, Email, etc.)
-   - Project details (Project Name, Category)
-   - Financials (Total Amount, Paid, Due, Status)
+1. **users**: Stores administrative credentials.
+2. **ClientMS**: Stores client documents including:
+   - Profile information
+   - Project details
+   - Financials
    - `payment_history`: An array of objects (amount, timestamp, notes).
 
 ---
