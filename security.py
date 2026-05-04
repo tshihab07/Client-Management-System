@@ -12,6 +12,7 @@ from models import UserInDB
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 120))
+USERNAME = os.getenv("ADMIN_USERNAME")
 
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY must be set in environment variables.")
