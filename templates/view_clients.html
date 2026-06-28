@@ -7,6 +7,11 @@
     ⚠️ {{ request.query_params.get('error') }}
 </div>
 {% endif %}
+{% if request.query_params.get('message') %}
+<div class="mb-4 p-3 bg-green-50 text-green-700 border border-green-200 rounded-md text-sm">
+    {{ request.query_params.get('message') }}
+</div>
+{% endif %}
 
 <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
 
@@ -87,11 +92,20 @@
                     <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.paid) }}</td>
                     <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900">৳{{ "%.2f"|format(client.due) }}</td>
                     <td class="px-3 py-4 whitespace-nowrap">
-                        {% if client.payment_status == "Completed" %}
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
-                        {% else %}
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
-                        {% endif %}
+                        <div class="flex items-center justify-between gap-2 min-w-[140px]">
+                            {% if client.payment_status == "Completed" %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
+                            {% else %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                            {% endif %}
+                            <form method="post" action="/api/clients/{{ client.id }}/delete" class="inline-flex" onsubmit="return confirm('Remove this client from the database?');">
+                                <button type="submit" class="inline-flex items-center justify-center text-red-600 hover:text-red-800 transition h-7 w-7 rounded-full hover:bg-red-50" aria-label="Remove {{ client.client_name }}" title="Remove client">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.164h-3.75c-1.18 0-2.09.984-2.09 2.164v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {% else %}
