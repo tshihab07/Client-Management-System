@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import RedirectResponse
 from typing import List, Optional
 from datetime import datetime
+from bson import ObjectId
+from bson.errors import InvalidId
 from database import get_collection
 from models import ClientCreate, ClientInDB, ClientUpdate
 
@@ -57,6 +60,20 @@ async def get_clients(
         doc["_id"] = str(doc["_id"])
         clients.append(ClientInDB(**doc))
     return clients
+
+
+@router.post("/clients/{client_id}/delete", status_code=status.HTTP_303_SEE_OTHER)
+async def delete_client(client_id: str, collection = Depends(get_client_collection)):
+    try:
+        obj_id = ObjectId(client_id)
+    except (InvalidId, TypeError):
+        return RedirectResponse(url="/view?error=Client not found", status_code=status.HTTP_303_SEE_OTHER)
+
+    result = collection.delete_one({"_id": obj_id})
+    if result.deleted_count == 0:
+        return RedirectResponse(url="/view?error=Client not found", status_code=status.HTTP_303_SEE_OTHER)
+
+    return RedirectResponse(url="/view?message=Client removed successfully", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @router.get("/clients/pending", response_model=List[ClientInDB])
